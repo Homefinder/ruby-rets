@@ -1,3 +1,4 @@
+require "rets/version"
 require "rets/exceptions"
 require "rets/client"
 require "rets/http"
