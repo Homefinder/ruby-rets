@@ -7,12 +7,29 @@ Requirements
 * Ruby 1.8 (Not tested on 1.9, but should work fine)
 * Nokogiri
 
+Examples
+-
+
+user_agent and read_timeout are optional.
+
+    client = RETS::Client.login(:url => "http://foobar.com/rets/Login", :username => "foo", :password => "bar", :user_agent => "My RETS Importer")
+    client.search(:search_type => :Property, :class => :RES, :filter => "(ListPrice=50000-)", :read_timeout => 10.minutes.to_i) do |data|
+      # RETS data in key/value format, as COMPACT-DECODED
+    end
+
+    client.get_object(:resource => :Property, :type => :Photo, :location => false, :id => "1:0:*").each do |object|
+      puts "Object-ID #{object[:headers]["Object-ID"]}, Content-ID #{object[:headers]["Content-ID"], Description #{object[:headers]["Description"]}"
+      puts "Data"
+      puts object[:content]
+    end
+
 License
 -
 Dual licensed under MIT and GPL.
 
 Todo
 -
+* Write rdocs
 * Add support for inline GZIP decompression
 * Add actual tests for areas that can be tested.
 * Clean up and improve the code a bit for sanity.
