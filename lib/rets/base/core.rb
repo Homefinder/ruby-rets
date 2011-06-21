@@ -35,8 +35,8 @@ module RETS
 
           # Using a wildcard somewhere
           if types.first == "multipart/parallel" and types[1] =~ /boundary=(.+)/
-            body.scan(/--#{$1}\r\n(.+)\r\n(.+)\r\n--#{$1}--/m).each do |headers, data|
-              row = {:headers => {}, :content => data}
+            body.scan(/--#{$1}\r\n(.+)\r\n(.+)\r\n--#{$1}--/m).each do |headers, content|
+              row = {:headers => {}, :content => content}
               headers.split("\r\n").each do |line|
                 name, value = line.split(":", 2)
                 row[:headers][name] = value.strip
