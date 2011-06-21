@@ -3,7 +3,7 @@ require "lib/rets/version.rb"
 
 Gem::Specification.new do |s|
   s.name        = "rets"
-  s.version     = RETS::Version
+  s.version     = RETS::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Zachary Anker"]
   s.email       = ["zach.anker@gmail.com"]
