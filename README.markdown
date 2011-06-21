@@ -4,7 +4,7 @@ RETS library for 1.7, should work for 1.5 but hasn't been tested yet. Support fo
 
 Requirements
 -
-* Ruby 1.8 (Not tested on 1.9, but should work fine)
+* Ruby 1.8 (Should work on 1.9)
 * Nokogiri
 
 Examples
