@@ -12,6 +12,8 @@ Examples
 
 user_agent and read_timeout are optional.
 
+Any requests made to search are ran through Nokogiri's SAX parser, and data is sent to the passed block as it's made available.
+
     client = RETS::Client.login(:url => "http://foobar.com/rets/Login", :username => "foo", :password => "bar", :user_agent => "My RETS Importer")
     client.search(:search_type => :Property, :class => :RES, :filter => "(ListPrice=50000-)", :read_timeout => 10.minutes.to_i) do |data|
       # RETS data in key/value format, as COMPACT-DECODED
