@@ -8,6 +8,17 @@ module RETS
       @left_to_read = @response.content_length
       @chunked = @response.chunked?
       @socket = @response.instance_variable_get(:@socket)
+
+      @digest = Digest::SHA1.new
+      @total_size = 0
+    end
+
+    def size
+      @total_size
+    end
+
+    def hash
+      @digest.hexdigest
     end
 
     def read(read_len)
@@ -15,11 +26,13 @@ module RETS
         # We hit the end of what we need to read, if this is a chunked request, then we need to check for the next chunk
         if @left_to_read <= read_len
           data = @socket.read(@left_to_read)
+          @total_size += @left_to_read
           @left_to_read = nil
           @read_clfr = true
         # Reading from known buffer still
         else
           @left_to_read -= read_len
+          @total_size += read_len
           data = @socket.read(read_len)
         end
 
@@ -42,10 +55,14 @@ module RETS
           # The chunk is outside of our buffer, we're going to start a straight read
           if len > read_len
             @left_to_read = len - read_len
+            @total_size += read_len
+
             data << @socket.read(read_len)
             break
           # We can just return the chunk as -is
           else
+            @total_size += len
+
             data << @socket.read(len)
             @socket.read(2)
           end
@@ -58,6 +75,8 @@ module RETS
 
         nil
       else
+        @digest.update(data)
+
         data
       end
     end
@@ -66,4 +85,3 @@ module RETS
     end
   end
 end
-

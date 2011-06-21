@@ -4,6 +4,7 @@ module RETS
   module Base
     class Core
       GET_OBJECT_DATA = {"object-id" => "Object-ID", "description" => "Description", "content-id" => "Content-ID"}
+      attr_accessor :request_size, :request_hash
 
       def initialize(http, version, urls)
         @http = http
@@ -30,6 +31,9 @@ module RETS
           end
 
           body = response.read_body
+
+          self.request_size = body.length
+          self.request_hash = Digest::SHA1.hexdigest(body)
 
           types = response.header["content-type"].split("; ")
 
@@ -81,8 +85,13 @@ module RETS
         end
 
         @http.request(:url => @urls[:Search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :SearchType => args[:search_type], :StandardNames => 1, :QueryType => "DMQL2", :Query => args[:filter], :Class => args[:class]}) do |response|
+          stream = RETS::StreamHTTP.new(response)
+
           doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXSearch.new(block))
-          doc.parse_io(RETS::StreamHTTP.new(response))
+          doc.parse_io(stream)
+
+          self.request_size = stream.size
+          self.request_hash = stream.hash
         end
       end
     end
