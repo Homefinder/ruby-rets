@@ -39,6 +39,7 @@ module RETS
               row = {:headers => {}, :content => content}
               headers.split("\r\n").each do |line|
                 name, value = line.split(":", 2)
+                next if !value or value == ""
                 row[:headers][name] = value.strip
               end
 
@@ -50,7 +51,7 @@ module RETS
             headers = {"Content-Type" => types.first}
             GET_OBJECT_DATA.each do |field, real_name|
               next if !response.header[field] or response.header[field] == ""
-              headers[real_name] = response.header[field]
+              headers[real_name] = response.header[field].strip
             end
 
             objects.push(:headers => headers, :content => body)
