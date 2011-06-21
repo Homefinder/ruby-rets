@@ -13,20 +13,20 @@ module RETS
 
     # Creates and manages the HTTP digest auth
     # if the WWW-Authorization header is passed, then it will overwrite what it knows about the auth data
-    def create_digest(method, request_uri, header=nil)
-      if header
-        @request_count = 1
-        @digest = {}
+    def save_digest(header)
+      @request_count = 0
+      @digest = {}
 
-        header.split(", ").each do |line|
-          k, v = line.split("=", 2)
-          @digest[k] = (k != "algorithm" and k != "stale") && v[1..-2] || v
-        end
-
-        @digest["qop"] ||= "digest"
-        @digest_type = @digest["qop"].split(",")
+      header.split(", ").each do |line|
+        k, v = line.split("=", 2)
+        @digest[k] = (k != "algorithm" and k != "stale") && v[1..-2] || v
       end
 
+      @digest["qop"] ||= "digest"
+      @digest_type = @digest["qop"].split(",")
+    end
+
+    def create_digest(method, request_uri)
       first = Digest::MD5.hexdigest("#{@auth[:username]}:#{@digest["realm"]}:#{@auth[:password]}")
       second = Digest::MD5.hexdigest("#{method}:#{request_uri}")
       cnonce = Digest::MD5.hexdigest("#{@headers["User-Agent"]}:#{@auth[:password]}:#{@request_count}:#{@digest["nonce"]}")
@@ -88,23 +88,29 @@ module RETS
 
       http.start do
         http.request_get(request_uri, args[:headers]) do |response|
-          if response.code == "401" and !args[:skip_auth]
+          # We already authed, and the request became stale so we have to switch to the new auth
+          if @auth_mode == :digest and response.header["www-authenticate"] =~ /stale=true/i
+            mode, header = response.header["www-authenticate"].split(" ", 2)
+
+            save_digest(header)
+
+            @headers.delete("Cookie")
+            args[:authing] = true
+            resend_request = true
+
+          # Invalid auth
+          elsif response.code == "401" and !args[:skip_auth]
             @auth_mode = nil
 
             # We're already trying to auth, and we still get an invalid auth, can call it a bust and raise
             raise RETS::InvalidAuth.new("Failed to login") if args[:authing]
-            raise RETS::UnsupportedAuth.new("Unknown authentication method used") unless response.header["WWW-Authenticate"]
+            raise RETS::UnsupportedAuth.new("Unknown authentication method used") unless response.header["www-authenticate"]
 
-            mode, header = response.header["WWW-Authenticate"].split(" ", 2)
+            mode, header = response.header["www-authenticate"].split(" ", 2)
             raise RETS::UnsupportedAuth.new("Unknown HTTP Auth, not digest or basic") unless mode == "Digest" or mode == "Basic"
 
             args[:authing] = true
-
-            if mode == "Digest"
-              args[:headers].merge!("Authorization" => create_digest("GET", request_uri, header))
-            elsif mode == "Basic"
-              args[:headers].merge!("Authorization" => create_basic)
-            end
+            save_digest(header)
 
             # Resend the request with the authorization, if it still fails it'll just throw another exception that will bubble up
             # If the request succeeds, we save that auth mode and will use it on any future requests
