@@ -13,6 +13,7 @@ Dual licensed under MIT and GPL.
 
 Todo
 -
+* Add support for inline GZIP decompression
 * Add actual tests for areas that can be tested.
 * Clean up and improve the code a bit for sanity.
 * RETS 2.0 support
