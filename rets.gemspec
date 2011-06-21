@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
   s.files        = Dir.glob("lib/**/*") + %w[GPL-LICENSE MIT-LICENSE README.markdown]
   s.require_path = "lib"
 
-#  s.required_rubygems_version = ">= 1.3.6"
-#  s.rubyforge_project         = "rets"
+  s.required_rubygems_version = ">= 1.3.6"
+  s.rubyforge_project         = "rets"
 
   s.add_runtime_dependency "nokogiri", "~>1.4.0"
   s.add_development_dependency "rspec", "~> 2.0.0"
