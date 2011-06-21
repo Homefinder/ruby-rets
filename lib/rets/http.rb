@@ -76,8 +76,6 @@ module RETS
         args[:headers].merge!("Authorization" => create_basic)
       end
 
-      args[:headers].each {|k, v| puts "#{k}, #{v}"}
-
       http = ::Net::HTTP.new(args[:url].host, args[:url].port)
       if args[:url].scheme == "https"
         http.use_ssl = true
