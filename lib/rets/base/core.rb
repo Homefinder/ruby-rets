@@ -53,14 +53,14 @@ module RETS
               headers[real_name] = response.header[field]
             end
 
-            objects.push(:headers => headers, :data => body)
+            objects.push(:headers => headers, :content => body)
           end
 
         end
 
         # First object is text/xml, so it's an error
         if objects.first[:headers]["Content-Type"] == "text/xml"
-          doc = Nokogiri::XML(objects.first[:data]).at("//RETS")
+          doc = Nokogiri::XML(objects.first[:content]).at("//RETS")
           code, message = doc.attr("ReplyCode"), doc.attr("ReplyText")
 
           # 404 errors don't need a hard fail, anything else does
