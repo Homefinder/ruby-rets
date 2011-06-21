@@ -77,10 +77,12 @@ module RETS
       end
 
       http = ::Net::HTTP.new(args[:url].host, args[:url].port)
-      if args[:url].scheme == "https"
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
+      http.read_timeout = args[:read_timeout] if args[:read_timeout]
+
+#      if args[:url].scheme == "https"
+#        http.use_ssl = true
+#        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+#      end
 
       resend_request = nil
 

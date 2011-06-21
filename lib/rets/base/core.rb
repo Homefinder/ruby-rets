@@ -24,7 +24,7 @@ module RETS
         headers = {"Accept" => "image/png,image/gif,image/jpeg"}
 
         objects = []
-        @http.request(:url => @urls[:GetObject], :headers => headers, :params => {:Resource => args[:resource], :Type => args[:type], :Location => (args[:location] ? 1 : 0), :ID => args[:id]}) do |response|
+        @http.request(:url => @urls[:GetObject], :read_timeout => args[:read_timeout], :headers => headers, :params => {:Resource => args[:resource], :Type => args[:type], :Location => (args[:location] ? 1 : 0), :ID => args[:id]}) do |response|
           unless response.code == "200"
             raise RETS::InvalidResponse.new("Tried to retrieve object, got #{response.message} (#{response.code}) instead")
           end
@@ -79,7 +79,7 @@ module RETS
           raise RETS::CapabilityNotFound.new("Cannot find URL for Search call")
         end
 
-        @http.request(:url => @urls[:Search], :params => {:Format => "COMPACT-DECODED", :SearchType => args[:search_type], :StandardNames => 1, :QueryType => "DMQL2", :Query => args[:filter], :Class => args[:class]}) do |response|
+        @http.request(:url => @urls[:Search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :SearchType => args[:search_type], :StandardNames => 1, :QueryType => "DMQL2", :Query => args[:filter], :Class => args[:class]}) do |response|
           doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXSearch.new(block))
           doc.parse_io(RETS::StreamHTTP.new(response))
         end
