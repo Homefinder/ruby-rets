@@ -39,7 +39,12 @@ module RETS
 
           # Using a wildcard somewhere
           if types.first == "multipart/parallel" and types[1] =~ /boundary=(.+)/
-            body.scan(/--#{$1}\r\n(.+)\r\n(.+)\r\n--#{$1}--/m).each do |headers, content|
+            parts = body.split("--#{$1}\r\n")
+            parts.last.gsub!("\r\n--#{$1}--", "")
+            parts.each do |part|
+              next if part == "\r\n"
+              headers, content = part.split("\r\n", 2)
+
               row = {:headers => {}, :content => content}
               headers.split("\r\n").each do |line|
                 name, value = line.split(":", 2)
@@ -64,7 +69,7 @@ module RETS
         end
 
         # First object is text/xml, so it's an error
-        if objects.first[:headers]["Content-Type"] == "text/xml"
+        if objects.length > 0 and objects.first[:headers]["Content-Type"] == "text/xml"
           doc = Nokogiri::XML(objects.first[:content]).at("//RETS")
           code, message = doc.attr("ReplyCode"), doc.attr("ReplyText")
 
