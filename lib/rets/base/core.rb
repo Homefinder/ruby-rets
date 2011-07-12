@@ -43,7 +43,7 @@ module RETS
             parts.last.gsub!("\r\n--#{$1}--", "")
             parts.each do |part|
               next if part == "\r\n"
-              headers, content = part.split("\r\n", 2)
+              headers, content = part.strip.split("\r\n\r\n", 2)
 
               row = {:headers => {}, :content => content}
               headers.split("\r\n").each do |line|
