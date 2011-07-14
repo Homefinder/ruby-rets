@@ -124,7 +124,7 @@ module RETS
               @headers.merge!("Cookie" => response.header["set-cookie"].split("; ").first)
             end
 
-            args[:block].call(response)
+            args[:block].call(response) if args[:block]
 
           # Actual block, call as is
           elsif block_given?
