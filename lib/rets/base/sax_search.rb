@@ -32,17 +32,17 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
     return unless @current_tag
 
     if @current_tag == "COLUMNS"
-      @columns = @buffer.strip.split(@delimiter)
+      @columns = @buffer.split(@delimiter)
 
     # Finalize data and send it off
     else
       data = {}
 
-      list = @buffer.strip.split(@delimiter)
+      list = @buffer.split(@delimiter)
       list.each_index do |index|
+        next if @columns[index].nil? or @columns[index] == ""
         data[@columns[index]] = list[index]
       end
-
 
       @block.call(data)
     end
