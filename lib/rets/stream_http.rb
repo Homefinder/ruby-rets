@@ -75,6 +75,10 @@ module RETS
 
         nil
       else
+        if data.length >= @total_size
+          @response.instance_variable_set(:@read, true)
+        end
+
         @digest.update(data)
 
         data
