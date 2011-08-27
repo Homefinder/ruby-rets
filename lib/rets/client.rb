@@ -2,8 +2,11 @@ require "nokogiri"
 
 module RETS
   class Client
+    URL_KEYS = {"getobject" => true, "login" => true, "logout" => true, "search" => true, "getmetadata" => true}
+
     def self.login(args)
       @urls = {:Login => URI.parse(args[:url])}
+      base_url = @urls[:Login].to_s.gsub(@urls[:Login].path, "")
 
       http = RETS::HTTP.new({:username => args[:username], :password => args[:password]}, args[:user_agent])
       http.request(:url => @urls[:Login]) do |response|
@@ -19,9 +22,16 @@ module RETS
           raise RETS::InvalidResponse.new("Expected RETS ReplyCode 0, got #{code}")
         end
 
-        doc.xpath("//RETS/RETS-RESPONSE").first.children.first.content.split("\n").each do |row|
-          ability, url = row.split(" = ", 2)
-          next unless url =~ /^(http|www)/
+        doc.xpath("//RETS").first.content.split("\n").each do |row|
+          ability, url = row.split("=", 2)
+          next unless ability and url
+          ability.strip!
+          url.strip!
+
+          next unless URL_KEYS[ability.downcase]
+
+          # In case it's a relative path and doesn't include the domain
+          url = "#{base_url}#{url}" unless url =~ /(http|www)/
           @urls[ability.to_sym] = URI.parse(url)
         end
 
