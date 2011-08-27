@@ -22,7 +22,7 @@ module RETS
         @digest[k] = (k != "algorithm" and k != "stale") && v[1..-2] || v
       end
 
-      @digest["qop"] ||= "digest"
+      @digest["qop"] ||= "auth"
       @digest_type = @digest["qop"].split(",")
     end
 
