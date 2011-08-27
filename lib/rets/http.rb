@@ -7,7 +7,7 @@ module RETS
   class HTTP
     def initialize(auth, user_agent=nil)
       @request_count = 1
-      @headers = {"User-Agent" => (user_agent || "Ruby RETS/#{RETS::VERSION}")}
+      @headers = {"User-Agent" => (user_agent || "Ruby RETS/v#{RETS::VERSION}")}
       @auth = auth
     end
 
