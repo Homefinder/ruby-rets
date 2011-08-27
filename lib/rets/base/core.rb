@@ -13,19 +13,19 @@ module RETS
       end
 
       def logout
-        return unless @urls[:Logout]
-        @http.request(:url => @urls[:Logout], :skip_auth => true)
+        return unless @urls[:logout]
+        @http.request(:url => @urls[:logout], :skip_auth => true)
       end
 
       def get_object(args)
-        unless @urls[:GetObject]
+        unless @urls[:getobject]
           raise RETS::CapabilityNotFound.new("Cannot find URL for GetObject call")
         end
 
         headers = {"Accept" => "image/png,image/gif,image/jpeg"}
 
         objects = []
-        @http.request(:url => @urls[:GetObject], :read_timeout => args[:read_timeout], :headers => headers, :params => {:Resource => args[:resource], :Type => args[:type], :Location => (args[:location] ? 1 : 0), :ID => args[:id]}) do |response|
+        @http.request(:url => @urls[:getobject], :read_timeout => args[:read_timeout], :headers => headers, :params => {:Resource => args[:resource], :Type => args[:type], :Location => (args[:location] ? 1 : 0), :ID => args[:id]}) do |response|
           unless response.code == "200"
             raise RETS::InvalidResponse.new("Tried to retrieve object, got #{response.message} (#{response.code}) instead")
           end
@@ -85,11 +85,11 @@ module RETS
       end
 
       def search(args, &block)
-        unless @urls[:Search]
+        unless @urls[:search]
           raise RETS::CapabilityNotFound.new("Cannot find URL for Search call")
         end
 
-        @http.request(:url => @urls[:Search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :SearchType => args[:search_type], :StandardNames => (args[:standard_names] && 1 || 0), :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class]}) do |response|
+        @http.request(:url => @urls[:search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :searchType => args[:search_type], :StandardNames => (args[:standard_names] && 1 || 0), :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class]}) do |response|
           stream = RETS::StreamHTTP.new(response)
 
           doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXSearch.new(block))
