@@ -17,8 +17,8 @@ module RETS
       @request_count = 0
       @digest = {}
 
-      header.split(", ").each do |line|
-        k, v = line.split("=", 2)
+      header.split(",").each do |line|
+        k, v = line.strip.split("=", 2)
         @digest[k] = (k != "algorithm" and k != "stale") && v[1..-2] || v
       end
 
