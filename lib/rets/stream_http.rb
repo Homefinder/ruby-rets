@@ -58,7 +58,7 @@ module RETS
             can_read = len - ( ( chunk_read + len ) - read_len )
 
             @left_to_read = len - can_read
-            @total_size += chunk_read + can_read
+            @total_size += can_read
 
             data << @socket.read(can_read) if can_read > 0
             break
