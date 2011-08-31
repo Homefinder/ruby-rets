@@ -43,7 +43,7 @@ module RETS
           @socket.read(2)
         end
 
-        data = ""
+        data, chunk_read = "", 0
         while true
           # Read first line to get the chunk length
           line = @socket.readline
@@ -52,16 +52,23 @@ module RETS
           len = len.hex
           break if len == 0
 
-          # The chunk is outside of our buffer, we're going to start a straight read
-          if len > read_len
+          # We haven't read anything yet, and this chunk is bigger than the buffer
+          if chunk_read == 0 and len > read_len
             @left_to_read = len - read_len
             @total_size += read_len
 
             data << @socket.read(read_len)
             break
+          # Reading this chunk will set us over the buffer amount
+          # send back what we already had, and then queue a read
+          elsif ( chunk_read + len ) > read_len
+            @left_to_read = len
+            @total_size += chunk_read
+            break
           # We can just return the chunk as -is
           else
             @total_size += len
+            chunk_read += len
 
             data << @socket.read(len)
             @socket.read(2)
@@ -80,7 +87,6 @@ module RETS
         end
 
         @digest.update(data)
-
         data
       end
     end
