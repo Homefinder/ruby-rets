@@ -52,18 +52,15 @@ module RETS
           len = len.hex
           break if len == 0
 
-          # We haven't read anything yet, and this chunk is bigger than the buffer
-          if chunk_read == 0 and len > read_len
-            @left_to_read = len - read_len
-            @total_size += read_len
-
-            data << @socket.read(read_len)
-            break
           # Reading this chunk will set us over the buffer amount
-          # send back what we already had, and then queue a read
-          elsif ( chunk_read + len ) > read_len
-            @left_to_read = len
-            @total_size += chunk_read
+          # Read what we can of it (if anything), and send back what we have and queue a read for the rest
+          if ( chunk_read + len ) > read_len
+            can_read = len - ( ( chunk_read + len ) - read_len )
+
+            @left_to_read = len - can_read
+            @total_size += chunk_read + can_read
+
+            data << @socket.read(can_read) if can_read > 0
             break
           # We can just return the chunk as -is
           else
