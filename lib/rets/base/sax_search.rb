@@ -35,7 +35,7 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
       @columns = @buffer.split(@delimiter)
 
     # Finalize data and send it off
-    else
+    elsif tag == "DATA"
       data = {}
 
       list = @buffer.split(@delimiter)
