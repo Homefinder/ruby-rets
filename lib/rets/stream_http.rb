@@ -86,6 +86,17 @@ module RETS
         @digest.update(data)
         data
       end
+
+    # Mark as read finished, return the last bits of data (if any))
+    rescue EOFError => eof
+      @response.instance_variable_set(:@read, true)
+
+      if data and data != ""
+        @digest.update(data)
+        data
+      else
+        nil
+      end
     end
 
     def close
