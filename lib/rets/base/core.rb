@@ -89,7 +89,7 @@ module RETS
           raise RETS::CapabilityNotFound.new("Cannot find URL for Search call")
         end
 
-        @http.request(:url => @urls[:search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :searchType => args[:search_type], :StandardNames => (args[:standard_names] && 1 || 0), :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class]}) do |response|
+        @http.request(:url => @urls[:search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :searchType => args[:search_type], :StandardNames => (args[:standard_names] && 1 || 0), :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class], :Limit => args[:limit]}) do |response|
           stream = RETS::StreamHTTP.new(response)
 
           doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXSearch.new(block))
