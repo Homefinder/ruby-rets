@@ -52,7 +52,7 @@ module RETS
     end
 
     def create_basic
-       "Basic " << "#{@auth[:username]}:#{@auth[:password]}".pack("m").delete("\r\n")
+       "Basic " << ["#{@auth[:username]}:#{@auth[:password]}"].pack("m").delete("\r\n")
     end
 
     def query_string(args)
@@ -74,6 +74,18 @@ module RETS
         args[:headers].merge!("Authorization" => create_digest("GET", request_uri))
       elsif @auth_mode == :basic
         args[:headers].merge!("Authorization" => create_basic)
+      # From the Interealty implementation at least, RETS-Version is really just an unverified field to "salt" the UA-Auth header.
+      # Will just make up a version and let it do the rest when it's flagged as requiring UA Auth. Might make it auto detect in the future.
+      elsif @auth[:ua_auth]
+        @auth_mode = :basic
+
+        args[:authing] = true
+        args[:block] = block
+        args[:headers].merge!(
+          "Authorization" => create_basic,
+          "User-Agent" => @auth[:username],
+          "RETS-UA-Authorization" => "Digest #{Digest::MD5.hexdigest("#{Digest::MD5.hexdigest("#{@auth[:username]}:#{@auth[:password]}")}:::1.7")}",
+          "RETS-Version" => "1.7")
       end
 
       http = ::Net::HTTP.new(args[:url].host, args[:url].port)
@@ -119,9 +131,12 @@ module RETS
 
           # We just tried to auth, so call the block manually
           elsif args[:authing]
-            # Save the cookie if any
             if response.header["set-cookie"]
-              @headers.merge!("Cookie" => response.header["set-cookie"].split("; ").first)
+              cookies = response.header["set-cookie"].split(",").map do |cookie|
+                cookie.split(";").first.strip
+              end
+
+              @headers.merge!("Cookie" => cookies.join("; "))
             end
 
             args[:block].call(response) if args[:block]

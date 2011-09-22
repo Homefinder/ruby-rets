@@ -8,7 +8,7 @@ module RETS
       @urls = {:login => URI.parse(args[:url])}
       base_url = @urls[:login].to_s.gsub(@urls[:login].path, "")
 
-      http = RETS::HTTP.new({:username => args[:username], :password => args[:password]}, args[:user_agent])
+      http = RETS::HTTP.new({:username => args[:username], :password => args[:password], :ua_auth => args[:ua_auth]}, args[:user_agent])
       http.request(:url => @urls[:login]) do |response|
         # Parse the response and figure out what capabilities we have
         unless response.code == "200"
