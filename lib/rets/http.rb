@@ -76,25 +76,20 @@ module RETS
         args[:headers].merge!("Authorization" => create_basic)
       # From the Interealty implementation at least, RETS-Version is really just an unverified field to "salt" the UA-Auth header.
       # Will just make up a version and let it do the rest when it's flagged as requiring UA Auth. Might make it auto detect in the future.
-      elsif @auth[:ua_auth]
+      elsif @auth[:ua_auth] or @auth[:ua_username] or @auth[:ua_password]
         @auth_mode = :basic
 
         args[:authing] = true
         args[:block] = block
         args[:headers].merge!(
           "Authorization" => create_basic,
-          "User-Agent" => @auth[:username],
-          "RETS-UA-Authorization" => "Digest #{Digest::MD5.hexdigest("#{Digest::MD5.hexdigest("#{@auth[:username]}:#{@auth[:password]}")}:::1.7")}",
+          "User-Agent" => @auth[:ua_username] || @auth[:username],
+          "RETS-UA-Authorization" => "Digest #{Digest::MD5.hexdigest("#{Digest::MD5.hexdigest("#{@auth[:ua_username] || @auth[:username]}:#{@auth[:ua_password] || @auth[:password]}")}:::1.7")}",
           "RETS-Version" => "1.7")
       end
 
       http = ::Net::HTTP.new(args[:url].host, args[:url].port)
       http.read_timeout = args[:read_timeout] if args[:read_timeout]
-
-#      if args[:url].scheme == "https"
-#        http.use_ssl = true
-#        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-#      end
 
       resend_request = nil
 
