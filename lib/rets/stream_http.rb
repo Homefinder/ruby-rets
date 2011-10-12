@@ -1,5 +1,5 @@
 # This is a slightly crazy hack, but it's saner if we can just use Net::HTTP and then fallback on the StreamHTTP class when we need to do stream parsing.
-# If we were to do it fully ourselves with Sockets, it would be a bigger pain to manage that, and we would have to do roughly the same setup as below anyway.
+# If we were to do it ourselves with Sockets, it would be a bigger pain to manage that, and we would have to do roughly the same setup as below anyway.
 # Essentially, for the hack of using instance_variable_get/instance_variable_set, we get a simple stream parser, without having to write our own HTTP class.
 module RETS
   class StreamHTTP
