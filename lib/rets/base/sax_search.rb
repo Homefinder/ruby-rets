@@ -1,3 +1,4 @@
+# SAX parser for the Search API call.
 class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
   def initialize(block)
     @block = block

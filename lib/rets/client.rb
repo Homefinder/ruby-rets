@@ -4,6 +4,19 @@ module RETS
   class Client
     URL_KEYS = {:getobject => true, :login => true, :logout => true, :search => true, :getmetadata => true}
 
+    ##
+    # Attempts to login to a RETS server.
+    # @param [Hash] args
+    #   * url - Login URL for the RETS server
+    #   * username - Username to pass for HTTP authentication
+    #   * password - Password to pass for HTTP authentication
+    #   * ua_auth (Optional) - Whether RETS-UA-Authorization needs to be passed, implied when using *ua_username* or *ua_password*
+    #   * ua_username (Optional) - What to set the HTTP User-Agent header to. If *ua_auth* is set and this is nil, *username* is used
+    #   * ua_password (Optional) - What password to use for RETS-UA-Authorization. If *ua_auth* is set and this is nil, *password* is used
+    #   * user_agent (Optional) - Custom user agent, ignored when using user agent authentication.
+    #
+    # @return [RETS::Base::Core]
+    #   Successful login will return a {RETS::Base::Core}. Otherwise it can raise a {RETS::InvalidResponse} or {RETS::ServerError} exception depending on why it was unable to login.
     def self.login(args)
       @urls = {:login => URI.parse(args[:url])}
       base_url = @urls[:login].to_s.gsub(@urls[:login].path, "")
@@ -19,7 +32,7 @@ module RETS
 
         code = doc.xpath("//RETS").attr("ReplyCode").value
         unless code == "0"
-          raise RETS::InvalidResponse.new("#{doc.xpath("//RETS").attr("ReplyText").value} (ReplyCode #{code})")
+          raise RETS::ServerError.new("#{doc.xpath("//RETS").attr("ReplyText").value} (ReplyCode #{code})")
         end
 
         doc.xpath("//RETS").first.content.split("\n").each do |row|

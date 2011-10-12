@@ -3,6 +3,10 @@
 # Essentially, for the hack of using instance_variable_get/instance_variable_set, we get a simple stream parser, without having to write our own HTTP class.
 module RETS
   class StreamHTTP
+    ##
+    # Initializes a new HTTP stream which can be passed to Nokogiri for SAX parsing.
+    # @param [Net::HTTPResponse] response
+    #   Unused HTTP response, no calls to any of the read_body or other methods can have been called.
     def initialize(response)
       @response = response
       @left_to_read = @response.content_length
@@ -13,14 +17,23 @@ module RETS
       @total_size = 0
     end
 
+    ##
+    # The total size read from the stream, can be called either while reading or at the end.
     def size
       @total_size
     end
 
+    ##
+    # SHA1 hash of the data read from the stream
     def hash
       @digest.hexdigest
     end
 
+    ##
+    # Read
+    #
+    # @param [Integer] read_len
+    #   How many bytes to read from the HTTP stream
     def read(read_len)
       if @left_to_read
         # We hit the end of what we need to read, if this is a chunked request, then we need to check for the next chunk
@@ -99,6 +112,8 @@ module RETS
       end
     end
 
+    ##
+    # Does nothing, only used because Nokogiri requires it in a SAX parser.
     def close
     end
   end

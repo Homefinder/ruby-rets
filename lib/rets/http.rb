@@ -5,14 +5,17 @@ require "digest"
 
 module RETS
   class HTTP
+    ##
+    # Creates a new HTTP instance which will automatically handle authenting to the RETS server.
     def initialize(auth, user_agent=nil)
       @request_count = 1
       @headers = {"User-Agent" => (user_agent || "Ruby RETS/v#{RETS::VERSION}")}
       @auth = auth
     end
 
+    ##
     # Creates and manages the HTTP digest auth
-    # if the WWW-Authorization header is passed, then it will overwrite what it knows about the auth data
+    # if the WWW-Authorization header is passed, then it will overwrite what it knows about the auth data.
     def save_digest(header)
       @request_count = 0
       @digest = {}
@@ -26,6 +29,8 @@ module RETS
       @digest_type = @digest["qop"].split(",")
     end
 
+    ##
+    # Creates a HTTP digest header.
     def create_digest(method, request_uri)
       first = Digest::MD5.hexdigest("#{@auth[:username]}:#{@digest["realm"]}:#{@auth[:password]}")
       second = Digest::MD5.hexdigest("#{method}:#{request_uri}")
@@ -51,14 +56,20 @@ module RETS
       http_digest
     end
 
+    ##
+    # Creates a HTTP basic header.
     def create_basic
        "Basic " << ["#{@auth[:username]}:#{@auth[:password]}"].pack("m").delete("\r\n")
     end
 
+    ##
+    # Takes a hash and turns it into an escaped query string.
     def query_string(args)
       (args.collect {|k, v| "#{k}=#{CGI::escape(v.to_s)}"}).join("&")
     end
 
+    ##
+    # sends a request to the RETS server.
     def request(args, &block)
       request_uri = "#{args[:url].request_uri}"
       request_uri << "?" << query_string(args[:params]) if args[:params]
