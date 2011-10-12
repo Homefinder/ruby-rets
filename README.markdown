@@ -2,10 +2,9 @@ Ruby RETS
 ===
 Library for pulling data from RETS. Should work with any implementations based off of RETS 1.x.
 
-Requirements
+Documentation
 -
-* Ruby 1.8 (Should work on 1.9)
-* Nokogiri
+See http://rubydoc.info/github/Placester/ruby-rets/master/frames for documentation.
 
 Examples
 -
@@ -22,6 +21,11 @@ Search and metadata requests sent through Nokogiri's SAX parser while downloadin
       puts "Data"
       puts object[:content]
     end
+
+Requirements
+-
+* Ruby 1.8 (Should work on 1.9)
+* Nokogiri
 
 License
 -

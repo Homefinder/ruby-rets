@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email       = ["zach.anker@gmail.com"]
   s.homepage    = "http://github.com/Placester/ruby-rets"
   s.summary     = "RETS library for Ruby"
-  s.description = "Simplifies communication with RETS 1.7, support for 2.0 and possibly 1.5 are planned."
+  s.description = "Simplifies communication with RETS 1.x APIs."
 
   s.files        = Dir.glob("lib/**/*") + %w[GPL-LICENSE MIT-LICENSE README.markdown]
   s.require_path = "lib"
@@ -18,5 +18,4 @@ Gem::Specification.new do |s|
   s.rubyforge_project         = "ruby-rets"
 
   s.add_runtime_dependency "nokogiri", "~>1.4.0"
-  s.add_development_dependency "rspec", "~> 2.0.0"
 end
