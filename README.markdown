@@ -1,6 +1,6 @@
 Ruby RETS
 ===
-RETS library for 1.7, should work for 1.5 but hasn't been tested yet. Support for 2.0 is planned, but it's not in yet. The main focus is towards pulling data out of a RETS, the GetObject and Search API's are supported, Update will be eventually.
+Library for pulling data from RETS. Should work with any implementations based off of RETS 1.x.
 
 Requirements
 -
@@ -10,9 +10,7 @@ Requirements
 Examples
 -
 
-user_agent and read_timeout are optional.
-
-Any requests made to search are ran through Nokogiri's SAX parser, and data is sent to the passed block as it's made available.
+Search and metadata requests sent through Nokogiri's SAX parser while downloading, and the data is sent back using the passed block.
 
     client = RETS::Client.login(:url => "http://foobar.com/rets/Login", :username => "foo", :password => "bar", :user_agent => "My RETS Importer")
     client.search(:search_type => :Property, :class => :RES, :filter => "(ListPrice=50000-)", :read_timeout => 10.minutes.to_i) do |data|
@@ -28,11 +26,3 @@ Any requests made to search are ran through Nokogiri's SAX parser, and data is s
 License
 -
 Dual licensed under MIT and GPL.
-
-Todo
--
-* Write rdocs
-* Add support for inline GZIP decompression
-* Add actual tests for areas that can be tested.
-* Clean up and improve the code a bit for sanity.
-* RETS 2.0 support
