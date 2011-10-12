@@ -17,6 +17,22 @@ module RETS
         @http.request(:url => @urls[:logout], :skip_auth => true)
       end
 
+      def get_metadata(args, &block)
+        unless @urls[:getmetadata]
+          raise RETS::CapabilityNotFound.new("Cannot find URL for GetMetadata call")
+        end
+
+        @http.request(:url => @urls[:getmetadata], :read_timeout => args[:read_timeout], :params => {:Format => :COMPACT, :Type => args[:type], :ID => args[:id]}) do |response|
+          stream = RETS::StreamHTTP.new(response)
+
+          doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXMetadata.new(block))
+          doc.parse_io(stream)
+
+          self.request_size = stream.size
+          self.request_hash = stream.hash
+        end
+      end
+
       def get_object(args)
         unless @urls[:getobject]
           raise RETS::CapabilityNotFound.new("Cannot find URL for GetObject call")
@@ -89,7 +105,7 @@ module RETS
           raise RETS::CapabilityNotFound.new("Cannot find URL for Search call")
         end
 
-        @http.request(:url => @urls[:search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :searchType => args[:search_type], :StandardNames => (args[:standard_names] && 1 || 0), :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class], :Limit => args[:limit]}) do |response|
+        @http.request(:url => @urls[:search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :SearchType => args[:search_type], :StandardNames => (args[:standard_names] && 1 || 0), :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class], :Limit => args[:limit]}) do |response|
           stream = RETS::StreamHTTP.new(response)
 
           doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXSearch.new(block))
