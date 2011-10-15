@@ -18,6 +18,8 @@ module RETS
     # @return [RETS::Base::Core]
     #   Successful login will return a {RETS::Base::Core}. Otherwise it can raise a {RETS::InvalidResponse} or {RETS::ServerError} exception depending on why it was unable to login.
     def self.login(args)
+      raise ArgumentError, "No URL passed" unless args[:url]
+
       @urls = {:login => URI.parse(args[:url])}
       base_url = @urls[:login].to_s.gsub(@urls[:login].path, "")
 

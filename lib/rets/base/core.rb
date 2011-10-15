@@ -44,6 +44,8 @@ module RETS
       # @return
       #   Can raise {RETS::CapabilityNotFound} or {RETS::ServerError} exceptions if something goes wrong.
       def get_metadata(args, &block)
+        raise ArgumentError, "No block found" unless block_given?
+
         unless @urls[:getmetadata]
           raise RETS::CapabilityNotFound.new("Cannot find URL for GetMetadata call")
         end
@@ -163,6 +165,8 @@ module RETS
       # @return
       #   Can raise {RETS::CapabilityNotFound} or {RETS::ServerError} exceptions if something goes wrong.
       def search(args, &block)
+        raise ArgumentError, "No block found" unless block_given?
+
         unless @urls[:search]
           raise RETS::CapabilityNotFound.new("Cannot find URL for Search call")
         end
