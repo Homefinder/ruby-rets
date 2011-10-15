@@ -48,18 +48,10 @@ module RETS
 
         if response.header["rets-version"] =~ /RETS\/(.+)/i
           @rets_version = $1.to_f
-        else
-          raise RETS::InvalidResponse.new("Cannot find RETS-Version header.")
         end
       end
 
-      begin
-        model = RETS.const_get("V#{@rets_version.gsub(".", "")}::Core")
-      rescue NameError => e
-        model = RETS::Base::Core
-      end
-
-      model.new(http, @rets_version, @urls)
+      RETS::Base::Core.new(http, @rets_version, @urls)
     end
   end
 end
