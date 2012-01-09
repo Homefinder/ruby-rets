@@ -16,11 +16,13 @@ module RETS
     #   * user_agent (Optional) - Custom user agent, ignored when using user agent authentication.
     #
     # @return [RETS::Base::Core]
-    #   Successful login will return a {RETS::Base::Core}. Otherwise it can raise a {RETS::InvalidResponse} or {RETS::ServerError} exception depending on why it was unable to login.
+    #   Successful login will return a {RETS::Base::Core}. Otherwise it can raise a {RETS::InvalidRequest}, {RETS::InvalidResponse} or {RETS::ServerError} exception depending on why it was unable to login or make the request.
     def self.login(args)
       raise ArgumentError, "No URL passed" unless args[:url]
 
       @urls = {:login => URI.parse(args[:url])}
+      raise RETS::InvalidRequest, "Invalid URL passed" unless @urls.is_a?(URI::HTTP)
+      
       base_url = @urls[:login].to_s.gsub(@urls[:login].path, "")
 
       http = RETS::HTTP.new({:username => args[:username], :password => args[:password], :ua_auth => args[:ua_auth], :ua_username => args[:ua_username], :ua_password => args[:ua_password]}, args[:user_agent])

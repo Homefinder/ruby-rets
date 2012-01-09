@@ -10,6 +10,9 @@ module RETS
 
   # Failed to login to the RETS server.
   class InvalidAuth < RuntimeError; end
+  
+  # Something with the request was invalid
+  class InvalidRequest < RuntimeError; end
 
   # Attempting to auth in a way that the library does not support.
   class UnsupportedAuth < RuntimeError; end
