@@ -28,6 +28,15 @@ module RETS
       end
 
       ##
+      # Whether the RETS server has the requested capability
+      #
+      # @param [Symbol] Lowercase of the capability, "getmetadata", "getobject", etc
+      # @return [Boolean] Whether the client supports the requested capability
+      def has_capability?(type)
+        !!@urls[key]
+      end
+
+      ##
       # Requests metadata from the RETS server.
       #
       # @param [Hash] args
