@@ -33,7 +33,7 @@ module RETS
       # @param [Symbol] Lowercase of the capability, "getmetadata", "getobject", etc
       # @return [Boolean] Whether the client supports the requested capability
       def has_capability?(type)
-        !!@urls[key]
+        !!@urls[type]
       end
 
       ##
