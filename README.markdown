@@ -1,6 +1,6 @@
 Ruby RETS
 ===
-Library for pulling data from RETS. Should work with any implementations based off of RETS 1.x.
+Library for pulling data from RETS 1.x servers. Primary difference from other RETS gems is that data is parsed as soon as its loaded to the server and discarded, it doesn't have to be written to disk first to do stream parsing.
 
 Documentation
 -
@@ -8,8 +8,6 @@ See http://rubydoc.info/github/Placester/ruby-rets/master/frames for documentati
 
 Examples
 -
-
-Search and metadata requests sent through Nokogiri's SAX parser while downloading, and the data is sent back using the passed block.
 
     client = RETS::Client.login(:url => "http://foobar.com/rets/Login", :username => "foo", :password => "bar", :user_agent => "My RETS Importer")
     client.search(:search_type => :Property, :class => :RES, :filter => "(ListPrice=50000-)", :read_timeout => 10.minutes.to_i) do |data|
@@ -24,8 +22,8 @@ Search and metadata requests sent through Nokogiri's SAX parser while downloadin
 
 Requirements
 -
-* Ruby 1.8 (Should work on 1.9)
-* Nokogiri
+* Tested on Ruby 1.8.7 and Ruby 1.9.3
+* Nokogiri ~> 1.5.0
 
 License
 -
