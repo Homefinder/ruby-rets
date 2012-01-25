@@ -23,7 +23,9 @@ module RETS
       @urls = {:login => URI.parse(args[:url])}
       raise RETS::InvalidRequest, "Invalid URL passed" unless @urls[:login].is_a?(URI::HTTP)
       
-      base_url = @urls[:login].to_s.gsub(@urls[:login].path, "")
+      if @urls[:login].path
+        base_url = @urls[:login].to_s.gsub(@urls[:login].path, "")
+      end
 
       http = RETS::HTTP.new({:username => args[:username], :password => args[:password], :ua_auth => args[:ua_auth], :ua_username => args[:ua_username], :ua_password => args[:ua_password]}, args[:user_agent])
       http.request(:url => @urls[:login]) do |response|
