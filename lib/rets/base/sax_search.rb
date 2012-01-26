@@ -1,7 +1,10 @@
 # SAX parser for the Search API call.
 class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
+  attr_reader :rets_data
+
   def initialize(block)
     @block = block
+    @rets_data = {}
   end
 
   def start_element(tag, attrs)
@@ -9,14 +12,18 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
 
     # Figure out if the request is a success
     if tag == "RETS"
-      reply_code = attrs.first.last
-      if reply_code != "0" and reply_code != "20201"
-        raise RETS::ServerError.new("#{attrs.last.last} (Code #{reply_code})")
+      @rets_data[:code], @rets_data[:text] = attrs.first.last, attrs.last.last
+      if @rets_data[:code] != "0" and @rets_data[:code] != "20201"
+        raise RETS::ServerError.new("#{@rets_data[:code]}: #{@rets_data[:text]}", @rets_data[:code], @rets_data[:text])
       end
 
     # Determine the separator for data
     elsif tag == "DELIMITER"
-      @delimiter = attrs.first.last.to_i.chr
+      @rets_data[:delimiter] = attrs.first.last.to_i.chr
+
+    # Total records returned
+    elsif tag == "COUNT"
+      @rets_data[:count] = attrs.first.last.to_i
 
     # Parsing data
     elsif tag == "COLUMNS" or tag == "DATA"
@@ -33,13 +40,13 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
     return unless @current_tag
 
     if @current_tag == "COLUMNS"
-      @columns = @buffer.split(@delimiter)
+      @columns = @buffer.split(@rets_data[:delimiter])
 
     # Finalize data and send it off
     elsif tag == "DATA"
       data = {}
 
-      list = @buffer.split(@delimiter)
+      list = @buffer.split(@rets_data[:delimiter])
       list.each_index do |index|
         next if @columns[index].nil? or @columns[index] == ""
         data[@columns[index]] = list[index]

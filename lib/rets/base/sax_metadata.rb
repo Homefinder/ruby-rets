@@ -1,8 +1,10 @@
 # SAX parser for the GetMetadata call.
 class RETS::Base::SAXMetadata < Nokogiri::XML::SAX::Document
+  attr_accessor :rets_data
+
   def initialize(block)
+    @rets_data = {:delimiter => "\t"}
     @block = block
-    @delimiter = "\t"
     @parent = {}
   end
 
@@ -11,14 +13,16 @@ class RETS::Base::SAXMetadata < Nokogiri::XML::SAX::Document
 
     # Figure out if the request is a success
     if tag == "RETS"
-      reply_code = attrs.first.last
-      if reply_code != "0" and reply_code != "20201"
-        raise RETS::ServerError.new("#{attrs.last.last} (Code #{reply_code})")
+      @rets_data[:code], @rets_data[:text] = attrs.first.last, attrs.last.last
+      if @rets_data[:code] != "0" and @rets_data[:code] != "20201"
+        raise RETS::ServerError.new("#{@rets_data[:code]}: #{@rets_data[:text]}", @rets_data[:code], @rets_data[:text])
       end
+
     # Parsing data
     elsif tag == "COLUMNS" or tag == "DATA"
       @buffer = ""
       @current_tag = tag
+
     # Start of the parent we're working with
     elsif tag =~ /^METADATA-(.+)/
       @parent[:tag] = tag

@@ -1,72 +1,87 @@
-require "nokogiri"
-
 # For more information on what the possible values of fields that are passed to the RETS server can be, see {http://www.rets.org/documentation}.
 module RETS
   module Base
     class Core
-      GET_OBJECT_DATA = {"object-id" => "Object-ID", "description" => "Description", "content-id" => "Content-ID"}
+      GET_OBJECT_DATA = {"object-id" => "Object-ID", "description" => "Description", "content-id" => "Content-ID", "location" => "Location", "content-type" => "Content-Type"}
 
-      # Can be called after any {RETS::Base::Core#get_metadata}, {RETS::Base::Core#search} or {RETS::Base::Core#get_object} calls to get how much data was returned from the server.
-      # @return [String] How big the request was.
-      attr_accessor :request_size
+      # Can be called after any {RETS::Base::Core} call that hits the RETS Server.
+      # @return [String] How big the request was
+      attr_reader :request_size
 
-      # Can be called after any {RETS::Base::Core#get_metadata}, {RETS::Base::Core#search} or {RETS::Base::Core#get_object} calls to get a hash of the servers returned data.
-      # @return [String] SHA1 hash of the request.
-      attr_accessor :request_hash
+      # Can be called after any {RETS::Base::Core} call that hits the RETS Server.
+      # @return [String] SHA1 hash of the request
+      attr_reader :request_hash
 
-      def initialize(http, version, urls)
+      # Can be called after any {RETS::Base::Core} call that hits the RETS Server.
+      # @return [Hash]
+      #   Gives access to the miscellaneous RETS data, such as reply text, code, delimiter, count and so on depending on the API call made.
+      #   * *text* (String) - Reply text from the server
+      #   * *code* (String) - Reply code from the server
+      attr_reader :rets_data
+
+      def initialize(http, urls)
         @http = http
         @urls = urls
-        @active_version = version
       end
 
       ##
       # Attempts to logout of the RETS server.
+      #
+      # @raise [RETS::CapabilityNotFound]
+      # @raise [RETS::ServerError]
+      # @raise [RETS::HTTPError]
       def logout
-        return unless @urls[:logout]
-        @http.request(:url => @urls[:logout], :skip_auth => true)
+        unless @urls[:logout]
+          raise RETS::CapabilityNotFound.new("No Logout capability found for given user.")
+        end
+
+        @http.request(:url => @urls[:logout])
       end
 
       ##
-      # Whether the RETS server has the requested capability
+      # Whether the RETS server has the requested capability.
       #
-      # @param [Symbol] Lowercase of the capability, "getmetadata", "getobject", etc
-      # @return [Boolean] Whether the client supports the requested capability
+      # @param [Symbol] type Lowercase of the capability, "getmetadata", "getobject" and so on
+      # @return [Boolean]
       def has_capability?(type)
-        !!@urls[type]
+        @urls.has_key?(type)
       end
 
       ##
       # Requests metadata from the RETS server.
       #
       # @param [Hash] args
-      #   * type - Metadata to request, the same value if you were manually making the request, "METADATA-SYSTEM", "METADATA-CLASS" and so on.
-      #   * id - Filter the data returned by ID, "*" would return all available data.
-      #   * read_timeout (Optional) - How many seconds to wait before giving up.
+      # @option args [String] :type Metadata to request, the same value if you were manually making the request, "METADATA-SYSTEM", "METADATA-CLASS" and so on
+      # @option args [String] :id Filter the data returned by ID, "*" would return all available data
+      # @option args [Integer, Optional] :read_timeout How many seconds to wait before giving up
       #
-      # @param [Proc] block
-      #   Block the library should call for each bit of metadata downloaded. Called with the below arguments:
-      #   * type (String) - Type of data that was parsed with "METADATA-" stripped out, for "METADATA-SYSTEM" this will be "SYSTEM".
-      #   * attrs (Hash) - Attributes of the data, generally *Version*, *Date* and *Resource* but can vary depending on what metadata you requested.
-      #   * data (Array) - Array of hashes with all of the metadatas info inside.
+      # @yield For every group of metadata downloaded
+      # @yieldparam [String] :type Type of data that was parsed with "METADATA-" stripped out, for "METADATA-SYSTEM" this will be "SYSTEM"
+      # @yieldparam [Hash] :attrs Attributes of the data, generally *Version*, *Date* and *Resource* but can vary depending on what metadata you requested
+      # @yieldparam [Array] :metadata Array of hashes with metadata info
       #
-      # @return
-      #   Can raise {RETS::CapabilityNotFound} or {RETS::ServerError} exceptions if something goes wrong.
+      # @raise [RETS::CapabilityNotFound]
+      # @raise [RETS::ServerError]
+      # @raise [RETS::HTTPError]
+      # @see #rets_data
+      # @see #request_size
+      # @see #request_hash
       def get_metadata(args, &block)
-        raise ArgumentError, "No block found" unless block_given?
+        raise ArgumentError, "No block passed" unless block_given?
 
         unless @urls[:getmetadata]
-          raise RETS::CapabilityNotFound.new("Cannot find URL for GetMetadata call")
+          raise RETS::CapabilityNotFound.new("No GetMetadata capability found for given user.")
         end
 
+        @request_size, @request_hash, @rets_data = nil, nil, nil
         @http.request(:url => @urls[:getmetadata], :read_timeout => args[:read_timeout], :params => {:Format => :COMPACT, :Type => args[:type], :ID => args[:id]}) do |response|
           stream = RETS::StreamHTTP.new(response)
+          sax = RETS::Base::SAXMetadata.new(block)
 
-          doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXMetadata.new(block))
-          doc.parse_io(stream)
+          Nokogiri::XML::SAX::Parser.new(sax).parse_io(stream)
 
-          self.request_size = stream.size
-          self.request_hash = stream.hash
+          @request_size, @request_hash = stream.size, stream.hash
+          @rets_data = sax.rets_data
         end
       end
 
@@ -74,105 +89,127 @@ module RETS
       # Requests an object from the RETS server.
       #
       # @param [Hash] args
-      #   * resource - Resource to load, typically *Property*.
-      #   * type - Type of object you want, usually *Photo*.
-      #   * location - Whether the location of the object should be returned, rather than the entire object.
-      #   * id - Filter what objects are returned.
-      #   * read_timeout (Optional) - How many seconds to wait before giving up.
+      # @option args [String] :resource Resource to load, typically *Property*
+      # @option args [String] :type Type of object you want, usually *Photo*
+      # @option args [String] :id What objects to return
+      # @option args [Array, Optional] :accept Array of MIME types to accept, by default this is *image/png*, *image/gif* and *image/jpeg*
+      # @option args [Boolean, Optional] :location Return the location of the object rather than the contents of it
+      # @option args [Integer, Optional] :read_timeout How many seconds to wait before timing out
       #
-      # @return [Array] objects
-      #   Returns an array containing the objects found. Can raise {RETS::CapabilityNotFound}, {RETS::InvalidResponse} or {RETS::ServerError} exceptions if something goes wrong.
-      #   Each object contains the following fields:
-      #   * content - Content returned for the object.
-      #   - headers
-      #     * Object-ID - Objects ID
-      #     * Content-ID - Content ID
-      #     * Content-Type - MIME type of the content.
-      #     * Description - A description of the object, if any.
-      def get_object(args)
+      # @yield For every object downloaded
+      # @yieldparam [Hash] :headers Object headers
+      #     * *Object-ID* (String) - Objects ID
+      #     * *Content-ID* (String) - Content ID
+      #     * *Content-Type* (String) - MIME type of the content
+      #     * *Description* (String, Optional) - A description of the object
+      #     * *Location* (String, Optional) - Where the file is located, only returned is *location* is true
+      # @yieldparam [String, Optional] :content Content for the object, not called when *location* is set
+      #
+      # @raise [RETS::CapabilityNotFound]
+      # @raise [RETS::ServerError]
+      # @raise [RETS::HTTPError]
+      # @see #rets_data
+      # @see #request_size
+      # @see #request_hash
+      def get_object(args, &block)
+        raise ArgumentError, "No block passed" unless block_given?
+
         unless @urls[:getobject]
-          raise RETS::CapabilityNotFound.new("Cannot find URL for GetObject call")
+          raise RETS::CapabilityNotFound.new("No GetObject capability found for given user.")
         end
 
-        headers = {"Accept" => "image/png,image/gif,image/jpeg"}
+        req = {:url => @urls[:getobject], :read_timeout => args[:read_timeout], :headers => {}}
+        req[:params] = {:Resource => args[:resource], :Type => args[:type], :Location => (args[:location] ? 1 : 0), :ID => args[:id]}
+        if args[:accept].is_a?(Array)
+          req[:headers][:Accept] = args[:accept].join(",")
+        else
+          req[:headers][:Accept] = "image/png,image/gif,image/jpeg"
+        end
 
-        objects = []
-        @http.request(:url => @urls[:getobject], :read_timeout => args[:read_timeout], :headers => headers, :params => {:Resource => args[:resource], :Type => args[:type], :Location => (args[:location] ? 1 : 0), :ID => args[:id]}) do |response|
-          unless response.code == "200"
-            raise RETS::InvalidResponse.new("Tried to retrieve object, got #{response.message} (#{response.code}) instead")
+        # Will get swapped to a streaming call rather than a download-and-parse later, easy to do as it's called with a block now
+        @request_size, @request_hash, @rets_data = nil, nil, nil
+        @http.request(req) do |response|
+          body = response.read_body
+          @request_size, @request_hash = body.length, Digest::SHA1.hexdigest(body)
+
+          # Make sure we aren't erroring
+          if body =~ /(<RETS(.+)\>)/
+            doc = Nokogiri::XML($1).at("//RETS")
+            code, text = doc.attr("ReplyCode"), doc.attr("ReplyText")
+            @rets_data = {:code => code, :text => text}
+
+            if code == "20403"
+              return
+            else
+              raise RETS::ServerError.new("#{code}: #{text}", code, text)
+            end
           end
 
-          body = response.read_body
-
-          self.request_size = body.length
-          self.request_hash = Digest::SHA1.hexdigest(body)
-
-          types = response.header["content-type"].split("; ")
-
           # Using a wildcard somewhere
-          if types.first == "multipart/parallel" and types[1] =~ /boundary=(.+)/
+          if response.content_type == "multipart/parallel" and response.header["content-type"] =~ /boundary=(.+);/
             parts = body.split("--#{$1}\r\n")
             parts.last.gsub!("\r\n--#{$1}--", "")
             parts.each do |part|
               next if part == "\r\n"
               headers, content = part.strip.split("\r\n\r\n", 2)
 
-              row = {:headers => {}, :content => content}
+              parsed_headers = {}
               headers.split("\r\n").each do |line|
                 name, value = line.split(":", 2)
-                next if !value or value == ""
-                row[:headers][name] = value.strip
+                next unless value and value != ""
+
+                parsed_headers[name] = value.strip
               end
 
-              objects.push(row)
+              if parsed_headers["Location"]
+                yield parsed_headers
+              else
+                yield parsed_headers, content
+              end
+
             end
 
           # Either text (error) or an image of some sorts, which is irrelevant for this
           else
-            headers = {"Content-Type" => types.first}
+            headers = {}
             GET_OBJECT_DATA.each do |field, real_name|
-              next if !response.header[field] or response.header[field] == ""
+              next unless response.header[field] and response.header[field] != ""
               headers[real_name] = response.header[field].strip
             end
 
-            objects.push(:headers => headers, :content => body)
-          end
-
-        end
-
-        # First object is text/xml, so it's an error
-        if objects.length > 0 and objects.first[:headers]["Content-Type"] == "text/xml"
-          doc = Nokogiri::XML(objects.first[:content]).at("//RETS")
-          code, message = doc.attr("ReplyCode"), doc.attr("ReplyText")
-
-          # 404 errors don't need a hard fail, anything else does
-          if code == "20403"
-            return []
-          else
-            raise RETS::ServerError.new("#{message} (Code #{code})")
+            if headers["Location"]
+              yield headers
+            else
+              yield headers, content
+            end
           end
         end
-
-        objects
       end
 
       ##
       # Searches the RETS server for data.
       #
       # @param [Hash] args
-      #   * search_type - What you are searching on, typically *Property* or *Office*.
-      #   * class - Class of data to find, varies depending on RETS implementation, typically anything from *1* to *ResidentialProperty*.
-      #   * limit - Limit how many results are returned.
-      #   * standard_names - Whether to use standard names for the column and the search.
-      #   * query - What data to return, should be unescaped. CGI escaping is done automatically before sending it off.
-      #   * read_timeout (Optional) - How many seconds to wait before giving up.
+      # @option args [String] :search_type What to search on, typically *Property*, *Office* or *Agent*
+      # @option args [String] :class What class of data to return, varies between RETS implementations and can be anything from *1* to *ResidentialProperty*
+      # @option args [String] :query How to filter data, should be unescaped as CGI::escape will be called on the string
+      # @option args [Symbol, Optional] :count_mode Either *:only* to return just the total records found or *:both* to get count and records returned
+      # @option args [Integer, Optional] :limit Limit total records returned
+      # @option args [Integer, Optional] :offset Offset to start returning records from
+      # @option args [Array, Optional] :select Restrict the fields the RETS server returns
+      # @option args [Boolean, Optional] :standard_names Whether to use standard names for all fields
+      # @option args [String, Optional] :restricted String to show in place of a field value for any restricted fields the user cannot see
+      # @option args [Integer, Optional] :read_timeout How long to wait for data from the socket before giving up
       #
-      # @param [Proc] block
-      #   Block the library should call anytime data is available for a piece of data. Called for every <DATA></DATA> group.
-      #   * data (Hash) - Column name, value hash of the data returned from the server.
+      # @yield Called for every <DATA></DATA> group from the RETS server
+      # @yieldparam [Hash] :data One record of data from the RETS server
       #
-      # @return
-      #   Can raise {RETS::CapabilityNotFound} or {RETS::ServerError} exceptions if something goes wrong.
+      # @raise [RETS::CapabilityNotFound]
+      # @raise [RETS::ServerError]
+      # @raise [RETS::HTTPError]
+      # @see #rets_data
+      # @see #request_size
+      # @see #request_hash
       def search(args, &block)
         raise ArgumentError, "No block found" unless block_given?
 
@@ -180,14 +217,26 @@ module RETS
           raise RETS::CapabilityNotFound.new("Cannot find URL for Search call")
         end
 
-        @http.request(:url => @urls[:search], :read_timeout => args[:read_timeout], :params => {:Format => "COMPACT-DECODED", :SearchType => args[:search_type], :StandardNames => (args[:standard_names] && 1 || 0), :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class], :Limit => args[:limit]}) do |response|
+        req = {:url => @urls[:search], :read_timeout => args[:read_timeout]}
+        req[:params] = {:Format => "COMPACT-DECODED", :SearchType => args[:search_type], :QueryType => "DMQL2", :Query => args[:query], :Class => args[:class], :Limit => args[:limit], :Offset => args[:offset], :RestrictedIndicator => args[:restricted]}
+        req[:params][:Select] = args[:select].join(",") if args[:select].is_a?(Array)
+        req[:params][:StandardNames] = 1 if args[:standard_names]
+
+        if args[:count] == :only
+          req[:params][:Count] = 2
+        elsif args[:count] == :both
+          req[:params][:Count] = 1
+        end
+
+        @request_size, @request_hash, @rets_data = nil, nil, nil
+        @http.request(req) do |response|
           stream = RETS::StreamHTTP.new(response)
+          sax = RETS::Base::SAXSearch.new(block)
 
-          doc = Nokogiri::XML::SAX::Parser.new(RETS::Base::SAXSearch.new(block))
-          doc.parse_io(stream)
+          Nokogiri::XML::SAX::Parser.new(sax).parse_io(stream)
 
-          self.request_size = stream.size
-          self.request_hash = stream.hash
+          @request_size, @request_hash = stream.size, stream.hash
+          @rets_data = sax.rets_data
         end
       end
     end
