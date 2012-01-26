@@ -79,12 +79,13 @@ module RETS
     # @raise [RETS::HTTPError]
     # @raise [RETS::Unauthorized]
     def request(args, &block)
-      request_uri = "#{args[:url].request_uri}"
       if args[:params]
-        request_uri << "?"
+        request_uri = "#{args[:url].request_uri}?"
         args[:params].each do |k, v|
           request_uri << "#{k}=#{CGI::escape(v.to_s)}&" if v
         end
+      else
+        request_uri = args[:url].request_uri
       end
 
       headers = args[:headers]
