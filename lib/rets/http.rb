@@ -93,7 +93,7 @@ module RETS
       @request_count += 1
       if @auth_mode == :digest
         headers ||= {}
-        headers.merge!(:Authorization => create_digest("GET", request_uri))
+        headers.merge!("Authorization" => create_digest("GET", request_uri))
       end
 
       headers = headers ? @headers.merge(headers) : @headers
@@ -118,7 +118,7 @@ module RETS
             if @auth_mode == :digest
               save_digest(header)
             elsif @auth_mode == :basic
-              @headers.merge!(:Authorization => create_basic)
+              @headers.merge!("Authorization" => create_basic)
             end
 
             # Most RETS implementations don't care about RETS-Version for RETS-UA-Authorization.
