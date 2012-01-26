@@ -1,19 +1,32 @@
 module RETS
-  # RETS server replied to a request with an error of some sort.
-  class ServerError < RuntimeError; end
+  ##
+  # Generic module that provides access to the code and text separately of the exception
+  module ReplyErrors
+    attr_reader :reply_text, :reply_code
 
+    def initialize(msg, reply_code, reply_text)
+      super(msg)
+      @reply_code, @reply_text = reply_code, reply_text
+    end
+  end
+
+  ##
+  # RETS server replied to a request with an error of some sort.
+  class ServerError < StandardError
+    include ReplyErrors
+  end
+
+  ##
+  # HTTP errors related to a request.
+  class HTTPError < StandardError
+    include ReplyErrors
+  end
+
+  ##
+  # Cannot login
+  class Unauthorized < RuntimeError; end
+
+  ##
   # Account does not have access to the requested API.
   class CapabilityNotFound < RuntimeError; end
-
-  # HTTP errors related to a request.
-  class InvalidResponse < RuntimeError; end
-
-  # Failed to login to the RETS server.
-  class InvalidAuth < RuntimeError; end
-  
-  # Something with the request was invalid
-  class InvalidRequest < RuntimeError; end
-
-  # Attempting to auth in a way that the library does not support.
-  class UnsupportedAuth < RuntimeError; end
 end
