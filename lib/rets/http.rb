@@ -46,7 +46,7 @@ module RETS
       if @digest_type.include?("auth")
         hash = Digest::MD5.hexdigest("#{first}:#{@digest["nonce"]}:#{"%08X" % @request_count}:#{cnonce}:#{@digest["qop"]}:#{second}")
       else
-        raise RETS::UnsupportedAuth.new("Support for Digest mode #{@digest["qop"]} is not available yet.")
+        raise RETS::ServerError, "Cannot determine auth type for server"
       end
 
       http_digest = "Digest username=\"#{@config[:username]}\", "
