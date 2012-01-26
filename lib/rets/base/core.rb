@@ -121,9 +121,9 @@ module RETS
         req = {:url => @urls[:getobject], :read_timeout => args[:read_timeout], :headers => {}}
         req[:params] = {:Resource => args[:resource], :Type => args[:type], :Location => (args[:location] ? 1 : 0), :ID => args[:id]}
         if args[:accept].is_a?(Array)
-          req[:headers][:Accept] = args[:accept].join(",")
+          req[:headers]["Accept"] = args[:accept].join(",")
         else
-          req[:headers][:Accept] = "image/png,image/gif,image/jpeg"
+          req[:headers]["Accept"] = "image/png,image/gif,image/jpeg"
         end
 
         # Will get swapped to a streaming call rather than a download-and-parse later, easy to do as it's called with a block now

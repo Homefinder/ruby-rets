@@ -163,7 +163,7 @@ module RETS
               cookie.split(";").first.strip
             end
 
-            @headers.merge!(:Cookie => cookies.join("; "))
+            @headers.merge!("Cookie" => cookies.join("; "))
           end
         end
       end
