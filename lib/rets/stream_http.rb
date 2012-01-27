@@ -102,7 +102,7 @@ module RETS
       end
 
     # Mark as read finished, return the last bits of data (if any))
-    rescue EOFError => eof
+    rescue EOFError
       @response.instance_variable_set(:@read, true)
 
       if data and data != ""
