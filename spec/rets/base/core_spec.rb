@@ -50,6 +50,8 @@ describe RETS::Base::Core do
           {"MetadataEntryID" => "008BD5AD93B754D500338C253D9C1770", "SystemName" => "DM_TYPE", "StandardName" => "DM_TYPE", "LongName" => "DM_TYPE", "DBName" => "5", "ShortName" => "Decimal", "MaximumLength" => "0", "DataType" => "1"}
         ]
       end
+
+      client.rets_data.should == {:code => "0", :text => "Operation Successful.", :delimiter => "\t"}
     end
 
     it "raises an error" do
@@ -87,6 +89,7 @@ describe RETS::Base::Core do
           data.push(:headers => headers, :content => content)
         end
 
+        client.rets_data.should be_nil
         client.request_size.should == body.length
         client.request_hash.should == Digest::SHA1.hexdigest(body)
 
@@ -117,6 +120,7 @@ describe RETS::Base::Core do
           data.push(headers)
         end
 
+        client.rets_data.should be_nil
         client.request_size.should == body.length
         client.request_hash.should == Digest::SHA1.hexdigest(body)
 
@@ -143,6 +147,8 @@ describe RETS::Base::Core do
           e.code.should == "20000"
           e.text.should == "Error message goes here."
         end
+
+        client.rets_data.should == {:code => "20000", :text => "Error message goes here."}
       end
     end
 
@@ -164,6 +170,7 @@ describe RETS::Base::Core do
           content.should == "Quick\r\nObject\r\nData\r\n2"
         end
 
+        client.rets_data.should be_nil
         client.request_size.should == body.length
         client.request_hash.should == Digest::SHA1.hexdigest(body)
       end
@@ -184,6 +191,7 @@ describe RETS::Base::Core do
           headers.should == {"content-type" => "image/png", "content-id" => "1234", "object-id" => "1", "description" => "Foo Bar", "location" => "http://foobar.com/images/1234_5678.png"}
         end
 
+        client.rets_data.should be_nil
         client.request_size.should == body.length
         client.request_hash.should == Digest::SHA1.hexdigest(body)
       end
@@ -206,6 +214,42 @@ describe RETS::Base::Core do
           e.code.should == "20000"
           e.text.should == "Error message goes here."
         end
+      end
+    end
+  end
+
+  context "search" do
+    it "successfully loads data" do
+      RETS::StreamHTTP.stub(:new).and_return(StringIO.new(load_file("search", "success")))
+
+      http = mock("HTTP")
+      http.should_receive(:request).with(hash_including(:url => @uri, :params => {:SearchType => "Property", :QueryType => "DMQL2", :Format => "COMPACT-DECODED", :Class => "RES", :Limit => 5, :Offset => 10, :RestrictedIndicator => "####", :Select => "A,B,C", :StandardNames => 1, :Count => 1, :Query => "(FOO=BAR)"})).and_yield(nil)
+
+      data = []
+
+      client = RETS::Base::Core.new(http, {:search => @uri})
+      client.search(:search_type => "Property", :query => "(FOO=BAR)", :class => "RES", :limit => 5, :offset => 10, :restricted => "####", :select => ["A", "B", "C"], :standard_names => true, :count_mode => :both) do |row|
+        data.push(row)
+      end
+
+      client.rets_data.should == {:code => "0", :text => "Operation Successful", :count => 2, :delimiter => "\t"}
+
+      data.should have(2).items
+      data[0].should == {"BATHS" => "1.000000", "BATHS_FULL" => "1", "BATHS_HALF" => "0", "BEDROOMS" => "3", "STREET_NAME" => "BAR STEET"}
+      data[1].should == {"BATHS" => "3.000000", "BATHS_FULL" => "2", "BATHS_HALF" => "1", "BEDROOMS" => "", "STREET_NAME" => "FOO STREET"}
+    end
+
+
+    it "raises an error" do
+      RETS::StreamHTTP.stub(:new).and_return(StringIO.new(load_file("search", "error")))
+
+      http = mock("HTTP")
+      http.should_receive(:request).with(anything).and_yield(nil)
+
+      client = RETS::Base::Core.new(http, {:search => @uri})
+      lambda { client.search({}) {} }.should raise_error(RETS::APIError) do |e|
+        e.code.should == "20000"
+        e.text.should == "Error message goes here."
       end
     end
   end
