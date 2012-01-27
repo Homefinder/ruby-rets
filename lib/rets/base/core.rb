@@ -161,7 +161,7 @@ module RETS
                 parsed_headers[name.downcase] = value.strip
               end
 
-              if parsed_headers["location"]
+              if block.arity == 1
                 yield parsed_headers
               else
                 yield parsed_headers, content
@@ -177,7 +177,7 @@ module RETS
               headers[field] = response.header[field].strip
             end
 
-            if headers["Location"]
+            if block.arity == 1
               yield headers
             else
               yield headers, body
