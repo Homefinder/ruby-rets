@@ -2,6 +2,12 @@ Overview
 ===
 Main focus is on a simple gem for pulling data from the RETS server through SAX parsing rather than requiring documents to be written to disk and then manually passed through a SAX parser. Should support any 1.x implementation.
 
+Compability
+-
+Tested against Ruby 1.8.7, 1.9.2, 2.0.0 and REE. [Build History](http://travis-ci.org/Placester/ruby-rets)
+
+<img src="https://secure.travis-ci.org/Placester/ruby-rets.png?branch=master&.png"/>
+
 Documentation
 -
 See http://rubydoc.info/github/Placester/ruby-rets/master/frames for full documentation.
@@ -19,11 +25,6 @@ Examples
       puts "Data"
       puts object[:content]
     end
-
-Requirements
--
-* Tested on Ruby 1.8.7 and Ruby 1.9.3
-* Nokogiri ~> 1.5.0
 
 License
 -
