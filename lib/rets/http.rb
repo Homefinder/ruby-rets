@@ -46,7 +46,7 @@ module RETS
       if @digest_type.include?("auth")
         hash = Digest::MD5.hexdigest("#{first}:#{@digest["nonce"]}:#{"%08X" % @request_count}:#{cnonce}:#{@digest["qop"]}:#{second}")
       else
-        raise RETS::APIError, "Cannot determine auth type for server"
+        raise RETS::HTTPError, "Cannot determine auth type for server"
       end
 
       http_digest = "Digest username=\"#{@config[:username]}\", "
@@ -129,7 +129,7 @@ module RETS
             end
 
             if !@auth_mode and !response.header.get_fields("www-authenticate").empty?
-              raise RETS::HTTPError.new("Cannot authenticate, no known auth mode found", response.code)
+              raise RETS::HTTPError.new("Cannot authenticate, no known mode found", response.code)
             end
 
             # Most RETS implementations don't care about RETS-Version for RETS-UA-Authorization.
