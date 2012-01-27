@@ -2,7 +2,7 @@
 
 ## 2.0.0
 
-I wasn't originally planning on doing a 1.0.0 -> 2.0.0 bump so quickly, but redoing the authentication to fix a bug with one of the RETS Server implementations meant some sort of breaking change would be necessary. As I had some other areas of the API I wanted to clean up and make more consistent overall, this turned into a 2.0.0 version bump.
+The fast 1.0.0 -> 2.0.0 bump was due to bugs in how authorization was handled requiring some small breaking changes to the initial login call. I also wanted to clean up some small parts of the API and make sure everything had tests to reduce future issues as well. This should be the last breaking changes release for a while, everything else will follow a deprecation period.
 
 ### API Changes
   * `client.logout` will now raise `CapabilityNotFound` errors if it's unsupported
