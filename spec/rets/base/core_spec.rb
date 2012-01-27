@@ -142,7 +142,7 @@ describe RETS::Base::Core do
 
         client = RETS::Base::Core.new(http, {:getobject => @uri})
         lambda {
-          client.get_object(:resource => "Property", :type => "Photo", :id => "0:0:*") {}
+          client.get_object(:resource => "Property", :type => "Photo", :id => "0:0:*") {|a, b|}
         }.should raise_error(RETS::APIError) do |e|
           e.code.should == "20000"
           e.text.should == "Error message goes here."
@@ -209,7 +209,7 @@ describe RETS::Base::Core do
 
         client = RETS::Base::Core.new(http, {:getobject => @uri})
         lambda {
-          client.get_object(:resource => "Property", :type => "Photo", :id => "0:0:*") {}
+          client.get_object(:resource => "Property", :type => "Photo", :id => "0:0:*") {|a, b|}
         }.should raise_error(RETS::APIError) do |e|
           e.code.should == "20000"
           e.text.should == "Error message goes here."
