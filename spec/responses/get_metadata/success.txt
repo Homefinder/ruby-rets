@@ -1,0 +1,12 @@
+<?xml version="1.0"  encoding="ISO-8859-1"?>
+<RETS ReplyCode="0" ReplyText="Operation Successful.">
+<METADATA-TABLE Version="0.0.2" Date="Thu, 26 Jan 2012 00:00:00 GMT" Resource="PropDM" Class="Place">
+<COLUMNS>	MetadataEntryID	SystemName	StandardName	LongName	DBName	ShortName	MaximumLength	DataType	Precision	Searchable	Interpretation	Alignment	UseSeparator	EditMaskID	LookupName	MaxSelect	Units	Index	Minimum	Maximum	Default	Required	SearchHelpID	Unique	ModTimeStamp	ForeignKey	ForeignField	KeyRetrievalQuery	KeyRetrievalSelect	</COLUMNS>
+<DATA>	BB1662B7C5F22A0F905FD59E718CA05E	DM_LOC		DM_LOC	DM_LOC		16	Character		1																				</DATA>
+<DATA>	9457FC28CEB408103E13533E4A5B6BD1	DM_ID		DM_ID	DM_ID		10	Character		1														1						</DATA>
+<DATA>	BEA5955B308361A1B07BC55042E25E54	DM_LVL		DM_LVL	DM_LVL		5	Decimal	0	1																				</DATA>
+<DATA>	F9D1152547C0BDE01830B7E8BD60024C	DM_MLSID		DM_MLSID	DM_MLSID		10	Character		1																				</DATA>
+<DATA>	AF4732711661056EADBF798BA191272A	DM_ORDR		DM_ORDR	DM_ORDR		5	Decimal	0	1																				</DATA>
+<DATA>	008BD5AD93B754D500338C253D9C1770	DM_TYPE		DM_TYPE	DM_TYPE		5	Decimal	0	1																				</DATA>
+</METADATA-TABLE>
+</RETS>

@@ -1,0 +1,19 @@
+
+--534546696C65426F756E647279
+Content-Type: a/b
+Content-ID: 1234
+Object-ID: 1
+Description: Foo Bar
+
+Object Data 1
+--534546696C65426F756E647279
+Content-Type: c/d
+Content-ID: 5678
+Object-ID: 2
+Description: Bar Foo
+
+Quick
+Object
+Data
+2
+--534546696C65426F756E647279--

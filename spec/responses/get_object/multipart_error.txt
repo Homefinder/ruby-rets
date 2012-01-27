@@ -1,0 +1,9 @@
+
+--534546696C65426F756E647279
+Content-Type: text/xml
+Content-ID: 1234
+Object-ID: 1
+
+<RETS ReplyCode="20000" ReplyText="Error message goes here."/>
+
+--534546696C65426F756E647279--

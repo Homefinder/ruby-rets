@@ -1,0 +1,19 @@
+
+--534546696C65426F756E647279
+Content-Type: image/jpeg
+Content-ID: 1234
+Object-ID: 1
+Description: Foo Bar
+Location: http://foobar.com/images/1234_1686250.jpg
+
+
+--534546696C65426F756E647279
+Content-Type: image/jpeg
+Content-ID: 5678
+Object-ID: 2
+Description: Bar Foo
+Location: http://foobar.com/images/1234_0186250.jpg
+
+
+
+--534546696C65426F756E647279--
