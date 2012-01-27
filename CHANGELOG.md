@@ -16,5 +16,5 @@ I wasn't originally planning on doing a 1.0.0 -> 2.0.0 bump so quickly, but redo
 
 ### Fixes
   * Redid how authentication is handled, should fix any authentication bugs due to lax User Agent handling
-  * Exceptions are now raised consistently and have been simplifed to `ServerError`, `HTTPError`, `Unauthorized` and `CapabilityNotFound`
-  * `HTTPError` and `ServerError` now include the reply text and code in `reply_code` and `reply_text`
+  * Exceptions are now raised consistently and have been simplifed to `APIError`, `HTTPError`, `Unauthorized` and `CapabilityNotFound`
+  * `HTTPError` and `APIError` now include the reply text and code in `reply_code` and `reply_text`

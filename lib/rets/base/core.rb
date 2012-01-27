@@ -28,7 +28,7 @@ module RETS
       # Attempts to logout of the RETS server.
       #
       # @raise [RETS::CapabilityNotFound]
-      # @raise [RETS::ServerError]
+      # @raise [RETS::APIError]
       # @raise [RETS::HTTPError]
       def logout
         unless @urls[:logout]
@@ -61,7 +61,7 @@ module RETS
       # @yieldparam [Array] :metadata Array of hashes with metadata info
       #
       # @raise [RETS::CapabilityNotFound]
-      # @raise [RETS::ServerError]
+      # @raise [RETS::APIError]
       # @raise [RETS::HTTPError]
       # @see #rets_data
       # @see #request_size
@@ -106,7 +106,7 @@ module RETS
       # @yieldparam [String, Optional] :content Content for the object, not called when *location* is set
       #
       # @raise [RETS::CapabilityNotFound]
-      # @raise [RETS::ServerError]
+      # @raise [RETS::APIError]
       # @raise [RETS::HTTPError]
       # @see #rets_data
       # @see #request_size
@@ -141,7 +141,7 @@ module RETS
             if code == "20403"
               return
             else
-              raise RETS::ServerError.new("#{code}: #{text}", code, text)
+              raise RETS::APIError.new("#{code}: #{text}", code, text)
             end
           end
 
@@ -205,7 +205,7 @@ module RETS
       # @yieldparam [Hash] :data One record of data from the RETS server
       #
       # @raise [RETS::CapabilityNotFound]
-      # @raise [RETS::ServerError]
+      # @raise [RETS::APIError]
       # @raise [RETS::HTTPError]
       # @see #rets_data
       # @see #request_size

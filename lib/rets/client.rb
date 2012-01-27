@@ -16,7 +16,7 @@ module RETS
     #   * :password [String, Optional] - Password to use for RETS-UA-Authorization
     #
     # @raise [ArgumentError]
-    # @raise [RETS::ServerError]
+    # @raise [RETS::APIError]
     # @raise [RETS::HTTPError]
     # @raise [RETS::Unauthorized]
     #
@@ -37,7 +37,7 @@ module RETS
         code = doc.xpath("//RETS").attr("ReplyCode").value
         unless code == "0"
           text = doc.xpath("//RETS").attr("ReplyText").value
-          raise RETS::ServerError.new("#{code}: #{text}", code, text)
+          raise RETS::APIError.new("#{code}: #{text}", code, text)
         end
 
         doc.xpath("//RETS").first.content.split("\n").each do |row|

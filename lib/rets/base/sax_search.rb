@@ -14,7 +14,7 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
     if tag == "RETS"
       @rets_data[:code], @rets_data[:text] = attrs.first.last, attrs.last.last
       if @rets_data[:code] != "0" and @rets_data[:code] != "20201"
-        raise RETS::ServerError.new("#{@rets_data[:code]}: #{@rets_data[:text]}", @rets_data[:code], @rets_data[:text])
+        raise RETS::APIError.new("#{@rets_data[:code]}: #{@rets_data[:text]}", @rets_data[:code], @rets_data[:text])
       end
 
     # Determine the separator for data

@@ -12,7 +12,7 @@ module RETS
 
   ##
   # RETS server replied to a request with an error of some sort.
-  class ServerError < StandardError
+  class APIError < StandardError
     include ReplyErrors
   end
 

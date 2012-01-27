@@ -46,7 +46,7 @@ module RETS
       if @digest_type.include?("auth")
         hash = Digest::MD5.hexdigest("#{first}:#{@digest["nonce"]}:#{"%08X" % @request_count}:#{cnonce}:#{@digest["qop"]}:#{second}")
       else
-        raise RETS::ServerError, "Cannot determine auth type for server"
+        raise RETS::APIError, "Cannot determine auth type for server"
       end
 
       http_digest = "Digest username=\"#{@config[:username]}\", "
@@ -75,7 +75,7 @@ module RETS
     # @option args [Hash, Optional] :params Query string to include with the request
     # @option args [Integer, Optional] :read_timeout How long to wait for the socket to return data before timing out
     #
-    # @raise [RETS::ServerError]
+    # @raise [RETS::APIError]
     # @raise [RETS::HTTPError]
     # @raise [RETS::Unauthorized]
     def request(args, &block)
@@ -154,7 +154,7 @@ module RETS
               rets = Nokogiri::XML(response.body).xpath("//RETS")
               code = rets.attr("ReplyCode").value
               text = rets.attr("ReplyText").value
-              raise RETS::ServerError.new("#{code}: #{text}", code, text)
+              raise RETS::APIError.new("#{code}: #{text}", code, text)
             else
               raise RETS::HTTPError.new("#{response.code}: #{response.message}", response.code, response.message)
             end
