@@ -50,7 +50,6 @@ module RETS
         end
 
       elsif @chunked
-
         # We finished reading the chunks, read the last 2 to get \r\n out of the way, and then find the next chunk
         if @read_clfr
           @read_clfr = nil
