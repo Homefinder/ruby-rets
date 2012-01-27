@@ -147,8 +147,9 @@ module RETS
 
           # Using a wildcard somewhere
           if response.content_type == "multipart/parallel" and response.header["content-type"] =~ /boundary=(.+);/
-            parts = body.split("--#{$1}\r\n")
-            parts.last.gsub!("\r\n--#{$1}--", "")
+            boundary = $1
+            parts = body.split("--#{boundary}\r\n")
+            parts.last.gsub!("\r\n--#{boundary}--", "")
             parts.each do |part|
               next if part == "\r\n"
               headers, content = part.strip.split("\r\n\r\n", 2)
