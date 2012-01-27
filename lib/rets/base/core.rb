@@ -222,9 +222,9 @@ module RETS
         req[:params][:Select] = args[:select].join(",") if args[:select].is_a?(Array)
         req[:params][:StandardNames] = 1 if args[:standard_names]
 
-        if args[:count] == :only
+        if args[:count_mode] == :only
           req[:params][:Count] = 2
-        elsif args[:count] == :both
+        elsif args[:count_mode] == :both
           req[:params][:Count] = 1
         end
 
