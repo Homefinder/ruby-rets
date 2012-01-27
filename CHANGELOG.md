@@ -7,6 +7,7 @@ I wasn't originally planning on doing a 1.0.0 -> 2.0.0 bump so quickly, but redo
 ### API Changes
   * `client.logout` will now raise `CapabilityNotFound` errors if it's unsupported
   * `client.get_object` now requires a block which is yielded to rather than returning an array of the content
+  * `client.get_object` headers are now returned in lowercase form ("content-id" not "Content-ID" and so on)
   * `RETS::Client.login` now uses `:useragent => {:name => "Foo", :password => "Bar"}` to pass User Agent data, and it's no longer tries to guess at the User Agent data
 
 ### Features
