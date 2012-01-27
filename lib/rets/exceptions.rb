@@ -4,7 +4,7 @@ module RETS
   module ReplyErrors
     attr_reader :reply_text, :reply_code
 
-    def initialize(msg, reply_code, reply_text)
+    def initialize(msg, reply_code=nil, reply_text=nil)
       super(msg)
       @reply_code, @reply_text = reply_code, reply_text
     end
