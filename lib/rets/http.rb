@@ -113,13 +113,23 @@ module RETS
           elsif response.code == "401"
             raise RETS::Unauthorized, "Cannot login, check credentials" if @auth_mode
 
-            @auth_mode, header = response.header.get_fields("www-authenticate").last.split(" ", 2)
-            @auth_mode = @auth_mode.downcase.to_sym
+            # Find a valid way of authenicating to the server as some will support multiple methods
+            response.header.get_fields("www-authenticate").each do |text|
+              mode, header = text.split(" ", 2)
+              if mode == "Digest"
+                save_digest(header)
+                @auth_mode = :digest
 
-            if @auth_mode == :digest
-              save_digest(header)
-            elsif @auth_mode == :basic
-              @headers.merge!("Authorization" => create_basic)
+              elsif mode == "Basic"
+                @headers.merge!("Authorization" => create_basic)
+                @auth_mode = :basic
+              end
+
+              break if @auth_mode
+            end
+
+            if !@auth_mode and !response.header.get_fields("www-authenticate").empty?
+              raise RETS::HTTPError.new("Cannot authenticate, no known auth mode found", response.code)
             end
 
             # Most RETS implementations don't care about RETS-Version for RETS-UA-Authorization.
