@@ -4,7 +4,7 @@ Main focus is on a simple gem for pulling data from the RETS server through SAX 
 
 Compability
 -
-Tested against Ruby 1.8.7, 1.9.2, 2.0.0 and REE. [Build History](http://travis-ci.org/Placester/ruby-rets)
+Tested against Ruby 1.8.7, 1.9.2 and 2.0.0, build history is available [here](http://travis-ci.org/Placester/ruby-rets).
 
 <img src="https://secure.travis-ci.org/Placester/ruby-rets.png?branch=master&.png"/>
 
