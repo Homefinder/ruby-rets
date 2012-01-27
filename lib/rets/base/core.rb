@@ -2,7 +2,7 @@
 module RETS
   module Base
     class Core
-      GET_OBJECT_DATA = {"object-id" => "Object-ID", "description" => "Description", "content-id" => "Content-ID", "location" => "Location", "content-type" => "Content-Type"}
+      GET_OBJECT_DATA = ["object-id", "description", "content-id", "location", "content-type"]
 
       # Can be called after any {RETS::Base::Core} call that hits the RETS Server.
       # @return [String] How big the request was
@@ -98,11 +98,11 @@ module RETS
       #
       # @yield For every object downloaded
       # @yieldparam [Hash] :headers Object headers
-      #     * *Object-ID* (String) - Objects ID
-      #     * *Content-ID* (String) - Content ID
-      #     * *Content-Type* (String) - MIME type of the content
-      #     * *Description* (String, Optional) - A description of the object
-      #     * *Location* (String, Optional) - Where the file is located, only returned is *location* is true
+      #     * *object-id* (String) - Objects ID
+      #     * *content-id* (String) - Content ID
+      #     * *content-type* (String) - MIME type of the content
+      #     * *description* (String, Optional) - A description of the object
+      #     * *location* (String, Optional) - Where the file is located, only returned is *location* is true
       # @yieldparam [String, Optional] :content Content for the object, not called when *location* is set
       #
       # @raise [RETS::CapabilityNotFound]
@@ -158,10 +158,10 @@ module RETS
                 name, value = line.split(":", 2)
                 next unless value and value != ""
 
-                parsed_headers[name] = value.strip
+                parsed_headers[name.downcase] = value.strip
               end
 
-              if parsed_headers["Location"]
+              if parsed_headers["location"]
                 yield parsed_headers
               else
                 yield parsed_headers, content
@@ -172,15 +172,15 @@ module RETS
           # Either text (error) or an image of some sorts, which is irrelevant for this
           else
             headers = {}
-            GET_OBJECT_DATA.each do |field, real_name|
+            GET_OBJECT_DATA.each do |field|
               next unless response.header[field] and response.header[field] != ""
-              headers[real_name] = response.header[field].strip
+              headers[field] = response.header[field].strip
             end
 
             if headers["Location"]
               yield headers
             else
-              yield headers, content
+              yield headers, body
             end
           end
         end
