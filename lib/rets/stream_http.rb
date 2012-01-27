@@ -76,7 +76,7 @@ module RETS
 
             data << @socket.read(can_read) if can_read > 0
             break
-          # We can just return the chunk as -is
+          # We can just return the chunk as-is
           else
             @total_size += len
             chunk_read += len
