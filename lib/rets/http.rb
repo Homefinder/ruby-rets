@@ -4,6 +4,8 @@ require "digest"
 
 module RETS
   class HTTP
+    attr_accessor :auth_timer, :auth_timeout, :login_uri
+
     ##
     # Creates a new HTTP instance which will automatically handle authenting to the RETS server.
     def initialize(args)
@@ -79,6 +81,14 @@ module RETS
     # @raise [RETS::HTTPError]
     # @raise [RETS::Unauthorized]
     def request(args, &block)
+      # Reconnect to get a new session ID
+      if self.auth_timer and self.auth_timer <= Time.now.utc
+        self.auth_timer = Time.now.utc + self.auth_timeout
+
+        @headers.delete("Cookie")
+        self.request(:url => login_uri)
+      end
+
       if args[:params]
         request_uri = "#{args[:url].request_uri}?"
         args[:params].each do |k, v|

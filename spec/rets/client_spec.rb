@@ -33,7 +33,7 @@ describe RETS::Client do
     end
 
     it "no spaces with absolute paths" do
-      mock_response("<RETS ReplyCode=\"0\" ReplyText=\"Operation Successful\">\n<RETS-RESPONSE>\nBroker=FOO123\nMemberName=John Doe\nMetadataVersion=5.00.000\nMinMetadataVersion=5.00.000\nMetadataTimestamp=Wed, 1 June 2011 09:00:00 GMT\nMinMetadataTimestamp=Wed, 1 June 2011 09:00:00 GMT\nUser=BAR123\nLogin=http://foobar.com:1234/rets/login\nLogout=http://foobar.com:1234/rets/logout\nSearch=http://foobar.com:1234/rets/search\nGetMetadata=http://foobar.com:1234/rets/getmetadata\nGetObject=http://foobar.com:1234/rets/getobject\nTimeoutSeconds=1800\n</RETS-RESPONSE>\n</RETS>")
+      mock_response("<RETS ReplyCode=\"0\" ReplyText=\"Operation Successful\">\n<RETS-RESPONSE>\nBroker=FOO123\nMemberName=John Doe\nMetadataVersion=5.00.000\nMinMetadataVersion=5.00.000\nMetadataTimestamp=Wed, 1 June 2011 09:00:00 GMT\nMinMetadataTimestamp=Wed, 1 June 2011 09:00:00 GMT\nUser=BAR123\nLogin=http://foobar.com:1234/rets/login\nLogout=http://foobar.com:1234/rets/logout\nSearch=http://foobar.com:1234/rets/search\nGetMetadata=http://foobar.com:1234/rets/getmetadata\nGetObject=http://foobar.com:1234/rets/getobject\nTimeoutSeconds=18000\n</RETS-RESPONSE>\n</RETS>")
 
       client = RETS::Client.login(:url => "http://foobar.com:1234/rets/login")
       urls = client.instance_variable_get(:@urls)
@@ -43,6 +43,12 @@ describe RETS::Client do
       urls[:search].should == URI("http://foobar.com:1234/rets/search")
       urls[:getmetadata].should == URI("http://foobar.com:1234/rets/getmetadata")
       urls[:getobject].should == URI("http://foobar.com:1234/rets/getobject")
+
+      http = client.instance_variable_get(:@http)
+      http.instance_variable_get(:@auth_timeout).should == 18000
+      timeout = http.instance_variable_get(:@auth_timer)
+      timeout.should_not be_nil
+      timeout.should be_within(2).of (Time.now.utc + 18000)
     end
 
     it "no spaces with relative paths" do
@@ -56,6 +62,12 @@ describe RETS::Client do
       urls[:search].should == URI("http://foobar.com/Search.asmx/Search")
       urls[:getmetadata].should == URI("http://foobar.com/GetMetadata.asmx/GetMetadata")
       urls[:getobject].should == URI("http://foobar.com/GetObject.asmx/GetObject")
+
+      http = client.instance_variable_get(:@http)
+      http.instance_variable_get(:@auth_timeout).should == 18000
+      timeout = http.instance_variable_get(:@auth_timer)
+      timeout.should_not be_nil
+      timeout.should be_within(2).of (Time.now.utc + 18000)
     end
 
     it "spaces with relative paths" do

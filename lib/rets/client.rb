@@ -41,15 +41,20 @@ module RETS
         end
 
         doc.xpath("//RETS").first.content.split("\n").each do |row|
-          ability, url = row.split("=", 2)
-          next unless ability and url
+          key, value = row.split("=", 2)
+          next unless key and value
 
-          ability, url = ability.downcase.strip.to_sym, url.strip
-          next unless URL_KEYS[ability]
+          key, value = key.downcase.strip.to_sym, value.strip
 
-          # In case it's a relative path and doesn't include the domain
-          url = "#{base_url}#{url}" unless url =~ /(http|www)/
-          urls[ability] = URI.parse(url)
+          if URL_KEYS[key]
+            # In case it's a relative path and doesn't include the domain
+            value = "#{base_url}#{value}" unless value =~ /(http|www)/
+            urls[key] = URI.parse(value)
+          elsif key == :timeoutseconds
+            http.auth_timeout = value.to_i
+            http.auth_timer = Time.now.utc + http.auth_timeout
+            http.login_uri = urls[:login]
+          end
         end
       end
 
