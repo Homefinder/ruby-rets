@@ -3,6 +3,11 @@ require "spec_helper"
 describe RETS::Client do
   include Support::ResponseMock
 
+  it "raises a ResponseError for non-RETS responses" do
+    mock_response('<html><body>Foo Bar</body></html')
+    lambda { RETS::Client.login(:url => "http://foobar.com/login/login.bar") }.should raise_error(RETS::ResponseError)
+  end
+
   it "raises an APIError on non-0 ReplyCodes" do
     mock_response('<RETS ReplyCode="20000" ReplyText="Failure message goes here."></RETS>')
     lambda { RETS::Client.login(:url => "http://foobar.com/login/login.bar") }.should raise_error(RETS::APIError)

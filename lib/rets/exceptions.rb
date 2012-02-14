@@ -17,6 +17,11 @@ module RETS
   end
 
   ##
+  # Server responded with bad data.
+  class ResponseError < StandardError
+  end
+
+  ##
   # HTTP errors related to a request.
   class HTTPError < StandardError
     include ReplyErrors

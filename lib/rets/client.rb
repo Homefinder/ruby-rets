@@ -19,6 +19,7 @@ module RETS
     # @raise [RETS::APIError]
     # @raise [RETS::HTTPError]
     # @raise [RETS::Unauthorized]
+    # @raise [RETS::ResponseError]
     #
     # @return [RETS::Base::Core]
     def self.login(args)
@@ -33,14 +34,18 @@ module RETS
       http = RETS::HTTP.new(args)
       http.request(:url => urls[:login]) do |response|
         doc = Nokogiri::XML(response.body)
+        rets_attr = doc.xpath("//RETS")
+        if rets_attr.empty?
+          raise RETS::ResponseError, "Does not seem to be a RETS server."
+        end
 
-        code = doc.xpath("//RETS").attr("ReplyCode").value
+        code = rets_attr.attr("ReplyCode").value
         unless code == "0"
-          text = doc.xpath("//RETS").attr("ReplyText").value
+          text = rets_attr.attr("ReplyText").value
           raise RETS::APIError.new("#{code}: #{text}", code, text)
         end
 
-        doc.xpath("//RETS").first.content.split("\n").each do |row|
+        rets_attr.first.content.split("\n").each do |row|
           key, value = row.split("=", 2)
           next unless key and value
 
