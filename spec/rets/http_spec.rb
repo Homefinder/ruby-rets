@@ -246,7 +246,7 @@ describe RETS::HTTP do
       uri = URI("http://foobar.com/login/login.bar")
 
       res_mock = mock("Response")
-      res_mock.stub(:body).and_return('<RETS ReplyCode="20000" ReplyText="Message indicating why it failed."></RETS>')
+      res_mock.stub(:body).and_return('<RETS ReplyCode="20000" replytext="Message indicating why it failed."></RETS>')
       res_mock.stub(:code).and_return("400")
       res_mock.stub(:message).and_return("Bad Request")
 

@@ -39,9 +39,8 @@ module RETS
           raise RETS::ResponseError, "Does not seem to be a RETS server."
         end
 
-        code = rets_attr.attr("ReplyCode").value
+        code, text = http.find_rets_reply(rets_attr)
         unless code == "0"
-          text = rets_attr.attr("ReplyText").value
           raise RETS::APIError.new("#{code}: #{text}", code, text)
         end
 
