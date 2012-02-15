@@ -139,7 +139,7 @@ describe RETS::Base::Core do
 
         http = mock("HTTP")
         http.should_receive(:request).with(anything).and_yield(response)
-        http.should_receive(:find_rets_reply).and_return(["20000", "Error message goes here."])
+        http.should_receive(:get_rets_response).and_return(["20000", "Error message goes here."])
 
         client = RETS::Base::Core.new(http, {:getobject => @uri})
         lambda {
@@ -207,7 +207,7 @@ describe RETS::Base::Core do
 
         http = mock("HTTP")
         http.should_receive(:request).with(anything).and_yield(response)
-        http.should_receive(:find_rets_reply).and_return(["20000", "Error message goes here."])
+        http.should_receive(:get_rets_response).and_return(["20000", "Error message goes here."])
 
         client = RETS::Base::Core.new(http, {:getobject => @uri})
         lambda {

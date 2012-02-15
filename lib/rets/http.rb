@@ -71,7 +71,12 @@ module RETS
 
     ##
     # Finds the ReplyText and ReplyCode attributes in the response
-    def find_rets_reply(rets)
+    #
+    # @param [Nokogiri::XML::NodeSet] rets <RETS> attributes found
+    #
+    # @return [String] RETS ReplyCode
+    # @return [String] RETS ReplyText
+    def get_rets_response(rets)
       code, text = nil, nil
       rets.first.attributes.each do |attr|
         key = attr.first.downcase
@@ -177,7 +182,7 @@ module RETS
 
           elsif response.code != "200"
             if response.body =~ /<RETS/i
-              code, text = self.find_rets_reply(Nokogiri::XML(response.body).xpath("//RETS"))
+              code, text = self.get_rets_response(Nokogiri::XML(response.body).xpath("//RETS"))
               raise RETS::APIError.new("#{code}: #{text}", code, text)
             else
               raise RETS::HTTPError.new("#{response.code}: #{response.message}", response.code, response.message)
