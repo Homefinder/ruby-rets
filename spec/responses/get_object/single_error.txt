@@ -1,1 +1,1 @@
-<RETS ReplyCode="20000" ReplyText="Error message goes here."/>
+<RETS ReplyCode="20000" replytext="Error message goes here."/>

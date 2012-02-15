@@ -134,8 +134,7 @@ module RETS
 
           # Make sure we aren't erroring
           if body =~ /(<RETS(.+)\>)/
-            doc = Nokogiri::XML($1).at("//RETS")
-            code, text = doc.attr("ReplyCode"), doc.attr("ReplyText")
+            code, text = @http.find_rets_reply(Nokogiri::XML($1).at("//RETS"))
             @rets_data = {:code => code, :text => text}
 
             if code == "20403"

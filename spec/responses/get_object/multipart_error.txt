@@ -4,6 +4,6 @@ Content-Type: text/xml
 Content-ID: 1234
 Object-ID: 1
 
-<RETS ReplyCode="20000" ReplyText="Error message goes here."/>
+<RETS ReplyCode="20000" replytext="Error message goes here."/>
 
 --534546696C65426F756E647279--
