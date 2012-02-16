@@ -15,6 +15,10 @@ module RETS
 
       if @config[:useragent] and @config[:useragent][:name]
         @headers["User-Agent"] = @config[:useragent][:name]
+
+        if @config[:rets_version]
+          self.setup_ua_authorization(@config[:rets_version])
+        end
       end
 
       if @config[:auth_mode] == :basic
@@ -91,6 +95,23 @@ module RETS
     end
 
     ##
+    # Sets the RETS-VErsion and RETS-UA-Authorization fields
+    #
+    # @param [String] version
+    def setup_ua_authorization(version)
+      # Most RETS implementations don't care about RETS-Version for RETS-UA-Authorization.
+      # Because Rapattoni's does, will set and use it when possible, but otherwise will fake one.
+      # They also seem to require RETS-Version even when it's not required by RETS-UA-Authorization.
+      # Others, such as Offut/Innovia pass the header, but without a version attached.
+      @headers["RETS-Version"] = version
+
+      if @headers["RETS-Version"] and @config[:useragent] and @config[:useragent][:password]
+        login = Digest::MD5.hexdigest("#{@config[:useragent][:name]}:#{@config[:useragent][:password]}")
+        @headers.merge!("RETS-UA-Authorization" => "Digest #{Digest::MD5.hexdigest("#{login}:::#{@headers["RETS-Version"]}")}")
+      end
+    end
+
+    ##
     # Sends a request to the RETS server.
     #
     # @param [Hash] args
@@ -136,57 +157,58 @@ module RETS
 
       http.start do
         http.request_get(request_uri, headers) do |response|
+          # Rather than returning HTTP 401 when User-Agent authentication is needed, Retsiq returns HTTP 200
+          # with RETS error 20037. If we get a 20037, will let it pass through and handle it as if it was a HTTP 401.
+          rets_code = nil
+          if response.code != "401" and ( response.code != "200" or args[:check_response] )
+            if response.body =~ /<RETS/i
+              rets_code, text = self.get_rets_response(Nokogiri::XML(response.body).xpath("//RETS").first)
+              unless rets_code == "20037" or rets_code == "0"
+                raise RETS::APIError.new("#{rets_code}: #{text}", rets_code, text)
+              end
+
+            elsif !args[:check_response]
+              raise RETS::HTTPError.new("#{response.code}: #{response.message}", response.code, response.message)
+            end
+          end
+
           # Digest can become stale requiring us to reload data
           if @auth_mode == :digest and response.header["www-authenticate"] =~ /stale=true/i
             save_digest(response.header["www-authenticate"].split(" ", 2)[1])
             args[:block] = block
 
-          elsif response.code == "401"
+          elsif response.code == "401" or rets_code == "20037"
             raise RETS::Unauthorized, "Cannot login, check credentials" if @auth_mode
 
-            # Find a valid way of authenicating to the server as some will support multiple methods
-            response.header.get_fields("www-authenticate").each do |text|
-              mode, header = text.split(" ", 2)
-              if mode == "Digest"
-                save_digest(header)
-                @auth_mode = :digest
+            # Find a valid way of authenticating to the server as some will support multiple methods
+            if response.header.get_fields("www-authenticate") and !response.header.get_fields("www-authenticate").empty?
+              response.header.get_fields("www-authenticate").each do |text|
+                mode, header = text.split(" ", 2)
+                if mode == "Digest"
+                  save_digest(header)
+                  @auth_mode = :digest
 
-              elsif mode == "Basic"
-                @headers.merge!("Authorization" => create_basic)
-                @auth_mode = :basic
+                elsif mode == "Basic"
+                  @headers.merge!("Authorization" => create_basic)
+                  @auth_mode = :basic
+                end
+
+                break if @auth_mode
               end
 
-              break if @auth_mode
+              unless @auth_mode
+                raise RETS::HTTPError.new("Cannot authenticate, no known mode found", response.code)
+              end
             end
 
-            if !@auth_mode and !response.header.get_fields("www-authenticate").empty?
-              raise RETS::HTTPError.new("Cannot authenticate, no known mode found", response.code)
-            end
-
-            # Most RETS implementations don't care about RETS-Version for RETS-UA-Authorization.
-            # Because Rapattoni's does, will set and use it when possible, but otherwise will fake one.
-            # They also seem to require RETS-Version even when it's not required by RETS-UA-Authorization.
-            # Others, such as Offut/Innovia pass the header, but without a version attached.
+            # Check if we need to deal with User-Agent authorization
             if response.header["rets-version"] and response.header["rets-version"] != ""
-              @headers["RETS-Version"] = response.header["rets-version"]
+              self.setup_ua_authorization(response.header["rets-version"])
             else
-              @headers["RETS-Version"] = "RETS/1.7"
+              self.setup_ua_authorization("RETS/1.7")
             end
 
-            if !@headers["RETS-UA-Authorization"] and @headers["RETS-Version"] and @config[:useragent] and @config[:useragent][:password]
-              login = Digest::MD5.hexdigest("#{@config[:useragent][:name]}:#{@config[:useragent][:password]}")
-              @headers.merge!("RETS-UA-Authorization" => "Digest #{Digest::MD5.hexdigest("#{login}:::#{@headers["RETS-Version"]}")}")
-            end
-
-            args[:block] = block
-
-          elsif response.code != "200"
-            if response.body =~ /<RETS/i
-              code, text = self.get_rets_response(Nokogiri::XML(response.body).xpath("//RETS").first)
-              raise RETS::APIError.new("#{code}: #{text}", code, text)
-            else
-              raise RETS::HTTPError.new("#{response.code}: #{response.message}", response.code, response.message)
-            end
+            args[:block] ||= block
 
           # We just tried to auth and don't have access to the original block in yieldable form
           elsif args[:block]

@@ -8,14 +8,14 @@ describe RETS::Client do
     lambda { RETS::Client.login(:url => "http://foobar.com/login/login.bar") }.should raise_error(RETS::ResponseError)
   end
 
-  it "raises an APIError on non-0 ReplyCodes" do
+  it "raises an APIError if the ReplyCode is != 0 and != 20037" do
     mock_response('<RETS ReplyCode="20000" replytext="Failure message goes here."></RETS>')
     lambda { RETS::Client.login(:url => "http://foobar.com/login/login.bar") }.should raise_error(RETS::APIError)
   end
 
   it "correctly passes data to the HTTP class" do
     http_mock = mock("HTTP")
-    http_mock.should_receive(:request).with(:url => URI("http://foobar.com/login/login.bar"))
+    http_mock.should_receive(:request).with(hash_including(:url => URI("http://foobar.com/login/login.bar")))
 
     RETS::HTTP.stub(:new).with(hash_including(:username => "foo", :password => "bar")).and_return(http_mock)
 

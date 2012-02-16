@@ -14,6 +14,7 @@ module RETS
     # @option args [Hash, Optional] :useragent Only necessary for User Agent authentication
     #   * :name [String, Optional] - Name to set the User-Agent to
     #   * :password [String, Optional] - Password to use for RETS-UA-Authorization
+    # @option args [String, Optional] :rets_version Forces RETS-UA-Authorization on the first request if this and useragent name/password are set. Can be auto detected, but this lets you bypass 1 - 2 additional authentication requests initially.
     #
     # @raise [ArgumentError]
     # @raise [RETS::APIError]
@@ -32,16 +33,10 @@ module RETS
       base_url.gsub!(urls[:login].path, "") if urls[:login].path
 
       http = RETS::HTTP.new(args)
-      http.request(:url => urls[:login]) do |response|
-        doc = Nokogiri::XML(response.body)
-        rets_attr = doc.xpath("//RETS")
+      http.request(:url => urls[:login], :check_response => true) do |response|
+        rets_attr = Nokogiri::XML(response.body).xpath("//RETS")
         if rets_attr.empty?
           raise RETS::ResponseError, "Does not seem to be a RETS server."
-        end
-
-        code, text = http.get_rets_response(rets_attr.first)
-        unless code == "0"
-          raise RETS::APIError.new("#{code}: #{text}", code, text)
         end
 
         rets_attr.first.content.split("\n").each do |row|

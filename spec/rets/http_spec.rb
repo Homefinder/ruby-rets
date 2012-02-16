@@ -146,6 +146,44 @@ describe RETS::HTTP do
       http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar", :password => "foo"})
       http.request(:url => uri) {|r| r.test}
     end
+
+    it "uses RETS-UA-Authorization after HTTP 200 with RETS ReplyCode 20037" do
+      uri = URI("http://foobar.com/login/login.bar")
+
+      # The initial response while it's figuring out what authentication is
+      header_mock = mock("Header")
+      header_mock.stub(:get_fields).with("www-authenticate").and_return([])
+      header_mock.stub(:[]).with("rets-version").and_return("RETS/1.8")
+      header_mock.stub(:[]).with("set-cookie").and_return(nil)
+
+      res_mock = mock("Response")
+      res_mock.stub(:code).and_return("200")
+      res_mock.stub(:body).and_return('<RETS ReplyCode="20037" replytext="Failure message goes here."></RETS>')
+      res_mock.stub(:header).and_return(header_mock)
+
+      http_mock = mock("HTTP")
+      http_mock.should_receive(:start).and_yield
+      http_mock.should_receive(:request_get).with(uri.request_uri, {"User-Agent" => "FooBar"}).and_yield(res_mock)
+
+      Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
+
+      # Second request made after it figure out everything
+      res_mock = mock("Response")
+      res_mock.stub(:code).and_return("200")
+      res_mock.stub(:body).and_return('<RETS ReplyCode="0" replytext="Success message goes here."></RETS>')
+      res_mock.stub(:header).and_return({})
+      res_mock.should_receive(:test)
+
+      http_mock = mock("HTTP")
+      http_mock.should_receive(:start).and_yield
+      http_mock.should_receive(:request_get).with(uri.request_uri, hash_including("User-Agent" => "FooBar", "RETS-Version" => "RETS/1.8", "RETS-UA-Authorization" => "Digest aaeef7c65ff28b5b475acb42e66268f8")).and_yield(res_mock)
+
+      Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
+
+      # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
+      http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar", :password => "foo"})
+      http.request(:url => uri, :check_response => true) {|r| r.test}
+    end
   end
 
   it "handles cookie storing and passing" do
