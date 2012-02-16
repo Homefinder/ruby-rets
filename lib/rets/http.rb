@@ -78,7 +78,7 @@ module RETS
     # @return [String] RETS ReplyText
     def get_rets_response(rets)
       code, text = nil, nil
-      rets.first.attributes.each do |attr|
+      rets.attributes.each do |attr|
         key = attr.first.downcase
         if key == "replycode"
           code = attr.last.value
@@ -182,7 +182,7 @@ module RETS
 
           elsif response.code != "200"
             if response.body =~ /<RETS/i
-              code, text = self.get_rets_response(Nokogiri::XML(response.body).xpath("//RETS"))
+              code, text = self.get_rets_response(Nokogiri::XML(response.body).xpath("//RETS").first)
               raise RETS::APIError.new("#{code}: #{text}", code, text)
             else
               raise RETS::HTTPError.new("#{response.code}: #{response.message}", response.code, response.message)
