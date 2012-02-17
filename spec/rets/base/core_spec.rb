@@ -77,7 +77,7 @@ describe RETS::Base::Core do
         response = mock("Response")
         response.stub(:read_body).and_return(body)
         response.stub(:content_type).and_return("multipart/parallel")
-        response.stub(:header).and_return("content-type" => "multipart/parallel; boundary=534546696C65426F756E647279; charset=UTF8")
+        response.stub(:type_params).and_return("boundary" => "534546696C65426F756E647279")
 
         http = mock("HTTP")
         http.should_receive(:request).with(hash_including(:url => @uri, :headers => {"Accept" => "a/b,c/d,e/f"}, :params => {:Resource => "Property", :Type => "Photo", :Location => 0, :ID => "0:0:*"})).and_yield(response)
@@ -108,7 +108,7 @@ describe RETS::Base::Core do
         response = mock("Response")
         response.stub(:read_body).and_return(body)
         response.stub(:content_type).and_return("multipart/parallel")
-        response.stub(:header).and_return("content-type" => "multipart/parallel; boundary=534546696C65426F756E647279; charset=UTF8")
+        response.stub(:type_params).and_return("boundary" => "534546696C65426F756E647279", "charset" => "UTF8")
 
         http = mock("HTTP")
         http.should_receive(:request).with(hash_including(:url => @uri, :headers => {"Accept" => "image/png,image/gif,image/jpeg"}, :params => {:Resource => "Property", :Type => "Photo", :Location => 1, :ID => "0:0:*"})).and_yield(response)
@@ -135,7 +135,7 @@ describe RETS::Base::Core do
         response = mock("Response")
         response.stub(:read_body).and_return(body)
         response.stub(:content_type).and_return("multipart/parallel")
-        response.stub(:header).and_return("content-type" => "multipart/parallel; boundary=534546696C65426F756E647279; charset=UTF8")
+        response.stub(:type_params).and_return("boundary" => "534546696C65426F756E647279", "charset" => "UTF8")
 
         http = mock("HTTP")
         http.should_receive(:request).with(anything).and_yield(response)
