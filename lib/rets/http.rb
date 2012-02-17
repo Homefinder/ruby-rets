@@ -95,7 +95,7 @@ module RETS
     end
 
     ##
-    # Sets the RETS-VErsion and RETS-UA-Authorization fields
+    # Sets the RETS-Version and RETS-UA-Authorization fields
     #
     # @param [String] version
     def setup_ua_authorization(version)
