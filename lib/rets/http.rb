@@ -169,12 +169,13 @@ module RETS
               cookie = cookie.split(";").first.strip
 
               # If it's a RETS-Session-ID, it needs to be shoved into the RETS-UA-Authorization field
+              # Save the RETS-Session-ID so it can be used with RETS-UA-Authorization
               if cookie =~ /RETS\-Session\-ID=(.+)/i
                 @rets_data[:session_id] = $1
                 self.setup_ua_authorization(@rets_data) if @rets_data[:version]
-              else
-                cookies.push(cookie)
               end
+
+              cookies.push(cookie)
             end
 
             unless cookies.empty?

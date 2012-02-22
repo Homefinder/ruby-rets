@@ -184,6 +184,9 @@ describe RETS::HTTP do
       # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
       http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar", :password => "foo"})
       http.request(:url => uri, :check_response => true) {|r| r.test}
+
+      rets_data = http.instance_variable_get(:@rets_data)
+      rets_data[:session_id].should == "4f220ee66794dc9281000002"
     end
   end
 
@@ -212,7 +215,7 @@ describe RETS::HTTP do
     http.request(:url => uri) {|r| r.test}
 
     headers = http.instance_variable_get(:@headers)
-    headers["Cookie"].should == "ASP.NET_SessionId=4f220ee66794dc9281000001"
+    headers["Cookie"].should == "ASP.NET_SessionId=4f220ee66794dc9281000001; RETS-Session-ID=4f220ee66794dc9281000002"
 
     rets_data = http.instance_variable_get(:@rets_data)
     rets_data[:session_id].should == "4f220ee66794dc9281000002"
