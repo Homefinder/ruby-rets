@@ -152,9 +152,10 @@ describe RETS::HTTP do
 
       # The initial response while it's figuring out what authentication is
       header_mock = mock("Header")
+      header_mock.stub(:get_fields).with("set-cookie").and_return(["RETS-Session-ID=4f220ee66794dc9281000002; path=/"])
       header_mock.stub(:get_fields).with("www-authenticate").and_return([])
       header_mock.stub(:[]).with("rets-version").and_return("RETS/1.8")
-      header_mock.stub(:[]).with("set-cookie").and_return(nil)
+      header_mock.stub(:[]).with("set-cookie").and_return("RETS-Session-ID=4f220ee66794dc9281000002; path=/")
 
       res_mock = mock("Response")
       res_mock.stub(:code).and_return("200")
@@ -176,7 +177,7 @@ describe RETS::HTTP do
 
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield
-      http_mock.should_receive(:request_get).with(uri.request_uri, hash_including("User-Agent" => "FooBar", "RETS-Version" => "RETS/1.8", "RETS-UA-Authorization" => "Digest aaeef7c65ff28b5b475acb42e66268f8")).and_yield(res_mock)
+      http_mock.should_receive(:request_get).with(uri.request_uri, hash_including("User-Agent" => "FooBar", "RETS-Version" => "RETS/1.8", "RETS-UA-Authorization" => "Digest 3f56217348ed45a08e8669ed2a37c8da")).and_yield(res_mock)
 
       Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
 
@@ -189,7 +190,7 @@ describe RETS::HTTP do
   it "handles cookie storing and passing" do
     uri = URI("http://foobar.com/login/login.bar")
 
-    cookies = ["ASP.NET_SessionId=4f220ee66794dc9281000001; path=/; HttpOnly", "RETS-Session-ID=4f220ee66794dc9281000001; path=/"]
+    cookies = ["ASP.NET_SessionId=4f220ee66794dc9281000001; path=/; HttpOnly", "RETS-Session-ID=4f220ee66794dc9281000002; path=/"]
 
     header_mock = mock("Header")
     header_mock.stub(:get_fields).with("set-cookie").and_return(cookies)
@@ -211,7 +212,10 @@ describe RETS::HTTP do
     http.request(:url => uri) {|r| r.test}
 
     headers = http.instance_variable_get(:@headers)
-    headers["Cookie"].should == "ASP.NET_SessionId=4f220ee66794dc9281000001; RETS-Session-ID=4f220ee66794dc9281000001"
+    headers["Cookie"].should == "ASP.NET_SessionId=4f220ee66794dc9281000001"
+
+    rets_data = http.instance_variable_get(:@rets_data)
+    rets_data[:session_id].should == "4f220ee66794dc9281000002"
   end
 
   it "refreshes a digest if it becomes stale" do
@@ -287,6 +291,7 @@ describe RETS::HTTP do
       res_mock.stub(:body).and_return('<RETS ReplyCode="20000" replytext="Message indicating why it failed."></RETS>')
       res_mock.stub(:code).and_return("400")
       res_mock.stub(:message).and_return("Bad Request")
+      res_mock.stub(:header).and_return({})
 
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield
@@ -306,6 +311,7 @@ describe RETS::HTTP do
       res_mock.stub(:body).and_return("")
       res_mock.stub(:code).and_return("400")
       res_mock.stub(:message).and_return("Bad Request")
+      res_mock.stub(:header).and_return({})
 
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield

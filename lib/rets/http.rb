@@ -12,11 +12,13 @@ module RETS
       @headers = {"User-Agent" => "Ruby RETS/v#{RETS::VERSION}"}
       @request_count = 1
       @config = args
+      @rets_data = {}
 
       if @config[:useragent] and @config[:useragent][:name]
         @headers["User-Agent"] = @config[:useragent][:name]
 
         if @config[:rets_version]
+          @rets_data[:version] = @config[:rets_version]
           self.setup_ua_authorization(@config[:rets_version])
         end
       end
@@ -95,19 +97,21 @@ module RETS
     end
 
     ##
-    # Sets the RETS-Version and RETS-UA-Authorization fields
+    # Handles managing the relevant RETS-UA-Authorization headers
     #
-    # @param [String] version
-    def setup_ua_authorization(version)
+    # @param [Hash] args
+    # @option args [String] :version RETS Version
+    # @option args [String, Optional] :session_id RETS Session ID
+    def setup_ua_authorization(args)
       # Most RETS implementations don't care about RETS-Version for RETS-UA-Authorization.
       # Because Rapattoni's does, will set and use it when possible, but otherwise will fake one.
       # They also seem to require RETS-Version even when it's not required by RETS-UA-Authorization.
       # Others, such as Offut/Innovia pass the header, but without a version attached.
-      @headers["RETS-Version"] = version
+      @headers["RETS-Version"] = args[:version]
 
       if @headers["RETS-Version"] and @config[:useragent] and @config[:useragent][:password]
         login = Digest::MD5.hexdigest("#{@config[:useragent][:name]}:#{@config[:useragent][:password]}")
-        @headers.merge!("RETS-UA-Authorization" => "Digest #{Digest::MD5.hexdigest("#{login}:::#{@headers["RETS-Version"]}")}")
+        @headers.merge!("RETS-UA-Authorization" => "Digest #{Digest::MD5.hexdigest("#{login}::#{args[:session_id]}:#{@headers["RETS-Version"]}")}")
       end
     end
 
@@ -157,6 +161,27 @@ module RETS
 
       http.start do
         http.request_get(request_uri, headers) do |response|
+          # Pass along the cookies
+          if response.header["set-cookie"]
+            cookies = []
+
+            response.header.get_fields("set-cookie").each do |cookie|
+              cookie = cookie.split(";").first.strip
+
+              # If it's a RETS-Session-ID, it needs to be shoved into the RETS-UA-Authorization field
+              if cookie =~ /RETS\-Session\-ID=(.+)/i
+                @rets_data[:session_id] = $1
+                self.setup_ua_authorization(@rets_data) if @rets_data[:version]
+              else
+                cookies.push(cookie)
+              end
+            end
+
+            unless cookies.empty?
+              @headers.merge!("Cookie" => cookies.join("; "))
+            end
+          end
+
           # Rather than returning HTTP 401 when User-Agent authentication is needed, Retsiq returns HTTP 200
           # with RETS error 20037. If we get a 20037, will let it pass through and handle it as if it was a HTTP 401.
           rets_code = nil
@@ -203,10 +228,12 @@ module RETS
 
             # Check if we need to deal with User-Agent authorization
             if response.header["rets-version"] and response.header["rets-version"] != ""
-              self.setup_ua_authorization(response.header["rets-version"])
+              @rets_data[:version] = response.header["rets-version"]
             else
-              self.setup_ua_authorization("RETS/1.7")
+              @rets_data[:version] = "RETS/1.7"
             end
+
+            self.setup_ua_authorization(@rets_data)
 
             args[:block] ||= block
 
@@ -216,15 +243,6 @@ module RETS
 
           elsif block_given?
             yield response
-          end
-
-          # Save cookies for session ids and such
-          if response.header["set-cookie"]
-            cookies = response.header.get_fields("set-cookie").map do |cookie|
-              cookie.split(";").first.strip
-            end
-
-            @headers.merge!("Cookie" => cookies.join("; "))
           end
         end
       end
