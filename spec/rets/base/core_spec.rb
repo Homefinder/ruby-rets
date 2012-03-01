@@ -135,7 +135,7 @@ describe RETS::Base::Core do
         response = mock("Response")
         response.stub(:read_body).and_return(body)
         response.stub(:content_type).and_return("multipart/parallel")
-        response.stub(:type_params).and_return("boundary" => "534546696C65426F756E647279", "charset" => "UTF8")
+        response.stub(:type_params).and_return("boundary" => '"534546696C65426F756E647279"', "charset" => "UTF8")
 
         http = mock("HTTP")
         http.should_receive(:request).with(anything).and_yield(response)
