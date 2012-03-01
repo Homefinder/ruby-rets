@@ -2,7 +2,7 @@
 module RETS
   module Base
     class Core
-      GET_OBJECT_DATA = ["object-id", "description", "content-id", "content-description", "location", "content-type"]
+      GET_OBJECT_DATA = ["object-id", "description", "content-id", "content-description", "location", "content-type", "preferred"]
 
       # Can be called after any {RETS::Base::Core} call that hits the RETS Server.
       # @return [String] How big the request was
