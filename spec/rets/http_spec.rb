@@ -221,6 +221,39 @@ describe RETS::HTTP do
     rets_data[:session_id].should == "4f220ee66794dc9281000002"
   end
 
+  it "adds cookies if Set-Cookie is called multiple times" do
+    uri = URI("http://foobar.com/login/login.bar")
+
+    # First call
+    [["ASP.NET_SessionId=4f220ee66794dc9281000001; path=/; HttpOnly", "RETS-Session-ID=4f220ee66794dc9281000002; path=/"], ["RETS-Session-ID=foobar; path=/", "SERVERID=w613; path=/"]].each do |cookies|
+      header_mock = mock("Header")
+      header_mock.stub(:get_fields).with("set-cookie").and_return(cookies)
+      header_mock.stub(:[]).with("set-cookie").and_return(cookies.join(", "))
+
+      res_mock = mock("Response")
+      res_mock.stub(:code).and_return("200")
+      res_mock.stub(:header).and_return(header_mock)
+      res_mock.should_receive(:test)
+
+      http_mock = mock("HTTP")
+      http_mock.should_receive(:start).and_yield
+      http_mock.should_receive(:request_get).with(uri.request_uri, anything).and_yield(res_mock)
+
+      Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
+    end
+
+    # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
+    http = RETS::HTTP.new(:username => "foo", :password => "bar")
+    http.request(:url => uri) {|r| r.test}
+    http.request(:url => uri) {|r| r.test}
+
+    headers = http.instance_variable_get(:@headers)
+    headers["Cookie"].should == "ASP.NET_SessionId=4f220ee66794dc9281000001; RETS-Session-ID=foobar; SERVERID=w613"
+
+    rets_data = http.instance_variable_get(:@rets_data)
+    rets_data[:session_id].should == "foobar"
+  end
+
   it "refreshes a digest if it becomes stale" do
     uri = URI("http://foobar.com/login/login.bar")
 

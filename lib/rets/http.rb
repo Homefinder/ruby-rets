@@ -12,7 +12,7 @@ module RETS
       @headers = {"User-Agent" => "Ruby RETS/v#{RETS::VERSION}"}
       @request_count = 1
       @config = args
-      @rets_data = {}
+      @rets_data, @cookie_list = {}, {}
 
       if @config[:useragent] and @config[:useragent][:name]
         @headers["User-Agent"] = @config[:useragent][:name]
@@ -132,6 +132,8 @@ module RETS
         self.auth_timer = Time.now.utc + self.auth_timeout
 
         @headers.delete("Cookie")
+        @cookie_list = {}
+
         self.request(:url => login_uri)
       end
 
@@ -149,8 +151,11 @@ module RETS
       # Digest will change every time due to how its setup
       @request_count += 1
       if @auth_mode == :digest
-        headers ||= {}
-        headers.merge!("Authorization" => create_digest("GET", request_uri))
+        if headers
+          headers["Authorization"] = create_digest("GET", request_uri)
+        else
+          headers = {"Authorization" => create_digest("GET", request_uri)}
+        end
       end
 
       headers = headers ? @headers.merge(headers) : @headers
@@ -162,24 +167,30 @@ module RETS
       http.start do
         http.request_get(request_uri, headers) do |response|
           # Pass along the cookies
+          # Some servers will continually call Set-Cookie with the same value for every single request
+          # to avoid authentication problems from cookies being stomped over (which is sad, nobody likes having their cookies crushed).
+          # We keep a hash of every cookie set and only update it if something changed
           if response.header["set-cookie"]
-            cookies = []
+            cookies_changed = nil
 
             response.header.get_fields("set-cookie").each do |cookie|
-              cookie = cookie.split(";").first.strip
+              key, value = cookie.split(";").first.split("=")
+              key.strip!
+              value.strip!
 
               # If it's a RETS-Session-ID, it needs to be shoved into the RETS-UA-Authorization field
               # Save the RETS-Session-ID so it can be used with RETS-UA-Authorization
-              if cookie =~ /RETS\-Session\-ID=(.+)/i
-                @rets_data[:session_id] = $1
+              if key.downcase == "rets-session-id"
+                @rets_data[:session_id] = value
                 self.setup_ua_authorization(@rets_data) if @rets_data[:version]
               end
 
-              cookies.push(cookie)
+              cookies_changed = true if @cookie_list[key] != value
+              @cookie_list[key] = value
             end
 
-            unless cookies.empty?
-              @headers.merge!("Cookie" => cookies.join("; "))
+            if cookies_changed
+              @headers.merge!("Cookie" => @cookie_list.map {|k, v| "#{k}=#{v}"}.join("; "))
             end
           end
 
