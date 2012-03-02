@@ -214,8 +214,13 @@ describe RETS::HTTP do
     http = RETS::HTTP.new(:username => "foo", :password => "bar")
     http.request(:url => uri) {|r| r.test}
 
+    cookies = http.instance_variable_get(:@cookie_list)
+    cookies["RETS-Session-ID"].should == "4f220ee66794dc9281000002"
+    cookies["ASP.NET_SessionId"].should == "4f220ee66794dc9281000001"
+
     headers = http.instance_variable_get(:@headers)
-    headers["Cookie"].should == "ASP.NET_SessionId=4f220ee66794dc9281000001; RETS-Session-ID=4f220ee66794dc9281000002"
+    headers["Cookie"].should =~ /RETS-Session-ID=4f220ee66794dc9281000002/
+    headers["Cookie"].should =~ /ASP.NET_SessionId=4f220ee66794dc9281000001/
 
     rets_data = http.instance_variable_get(:@rets_data)
     rets_data[:session_id].should == "4f220ee66794dc9281000002"
@@ -247,8 +252,16 @@ describe RETS::HTTP do
     http.request(:url => uri) {|r| r.test}
     http.request(:url => uri) {|r| r.test}
 
+    cookies = http.instance_variable_get(:@cookie_list)
+    cookies["ASP.NET_SessionId"].should == "4f220ee66794dc9281000001"
+    cookies["RETS-Session-ID"].should == "foobar"
+    cookies["SERVERID"].should == "w613"
+
+
     headers = http.instance_variable_get(:@headers)
-    headers["Cookie"].should == "ASP.NET_SessionId=4f220ee66794dc9281000001; RETS-Session-ID=foobar; SERVERID=w613"
+    headers["Cookie"].should =~ /ASP.NET_SessionId=4f220ee66794dc9281000001/
+    headers["Cookie"].should =~ /RETS-Session-ID=foobar/
+    headers["Cookie"].should =~ /SERVERID=w613/
 
     rets_data = http.instance_variable_get(:@rets_data)
     rets_data[:session_id].should == "foobar"
