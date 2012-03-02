@@ -288,8 +288,8 @@ describe RETS::HTTP do
 
     # First request to figure out the new session id
     header_mock = mock("Header")
-    header_mock.should_receive(:get_fields).with("set-cookie").and_return(["RETS-Session-ID: foobar"])
-    header_mock.should_receive(:[]).with("set-cookie").and_return("RETS-Session-ID: foobar")
+    header_mock.should_receive(:get_fields).with("set-cookie").and_return(["RETS-Session-ID=foobar; path=/"])
+    header_mock.should_receive(:[]).with("set-cookie").and_return("RETS-Session-ID=foobar; path=/")
     header_mock.should_receive(:[]).with("www-authenticate").and_return('realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",qop="auth"')
 
     res_mock = mock("Response")
@@ -305,13 +305,13 @@ describe RETS::HTTP do
     # Now the original one with the new session id
     http_mock = mock("HTTP")
     http_mock.should_receive(:start).and_yield
-    http_mock.should_receive(:request_get).with(uri.request_uri, hash_including("Cookie" => "RETS-Session-ID: foobar"))
+    http_mock.should_receive(:request_get).with(uri.request_uri, hash_including("Cookie" => "RETS-Session-ID=foobar"))
 
     Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
 
     http = RETS::HTTP.new(:username => "foo", :password => "Bar")
     http.instance_variable_set(:@auth_mode, :digest)
-    http.instance_variable_set(:@headers, {"Cookie" => "RETS-Session-ID: barfoo"})
+    http.instance_variable_set(:@headers, {"Cookie" => "RETS-Session-ID=barfoo"})
     http.save_digest('realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",qop="auth"')
     http.auth_timer = Time.now.utc - 60
     http.auth_timeout = 60
