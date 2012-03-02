@@ -24,11 +24,11 @@ describe RETS::HTTP do
     end
 
     it "creates a digest header" do
-      http = RETS::HTTP.new(:username => "foo", :password => "bar")
+      http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar"})
       http.save_digest('realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",qop="auth"')
 
       digest = http.create_digest("GET", "/foo/bar?a=b&c=d")
-      digest.should == 'Digest username="foo", realm="Foo Bar", nonce="7d8ca69b352016f88d7c3d8a040dc9e0", uri="/foo/bar?a=b&c=d", algorithm=MD5, response="f899245806b35d375fe99ee440496ac7", opaque="431d3681382c9550ffc0525839a37aa3", qop="auth", nc=00000000, cnonce="581f450f288591672b0279e2986aaf03"'
+      digest.should == 'Digest username="foo", realm="Foo Bar", nonce="7d8ca69b352016f88d7c3d8a040dc9e0", uri="/foo/bar?a=b&c=d", algorithm=MD5, response="c9cfe27cc343e0b18bc857529510a76d", opaque="431d3681382c9550ffc0525839a37aa3", qop="auth", nc=00000000, cnonce="8a1f541c678feb35a19c8802ffd0c173"'
     end
 
     it "creates a basic header" do
