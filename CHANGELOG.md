@@ -3,7 +3,7 @@
 ## 2.0.1
 
 ### API Changes
-  * `client.login` will now raise `ResponseError` errors if the <RETS> tag cannot be found in the response
+  * `client.login` will now raise `ResponseError` errors if the RETS tag cannot be found in the response
   * `client.login` added the ability to pass `:rets_version` to force the RETS Version used in HTTP requests (small speedup when used)
   * `client.get_object` can return both Content-Description or Description rather than just Description. Also will return Preferred
 
@@ -13,7 +13,7 @@
 
 ### Fixes
   * Object multipart parsing no longer fails if the boundary is wrapped in quotes
-  * Response parsing won't fail if the RETS server uses odd casing for the "ReplyText" and "ReplyCode" args in <RETS>
+  * Response parsing won't fail if the RETS server uses odd casing for the "ReplyText" and "ReplyCode" args in RETS 
 
 ## 2.0.0
 
