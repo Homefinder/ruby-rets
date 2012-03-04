@@ -8,7 +8,7 @@
   * `client.get_object` can return both Content-Description or Description rather than just Description. Also will return Preferred
 
 ### Features
-  * Added support for TimeoutSeconds, after the timeout passes the gem seamlessly reauthenticate
+  * Added support for TimeoutSeconds, after the timeout passes the gem seamlessly reauthenticates
   * Improved the edge case handling for authentication requests to greatly increase compatability with logging into any RETS based system
 
 ### Fixes
