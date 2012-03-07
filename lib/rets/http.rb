@@ -4,7 +4,7 @@ require "digest"
 
 module RETS
   class HTTP
-    attr_accessor :auth_timer, :auth_timeout, :login_uri
+    attr_accessor :login_uri
 
     ##
     # Creates a new HTTP instance which will automatically handle authenting to the RETS server.
@@ -127,16 +127,6 @@ module RETS
     # @raise [RETS::HTTPError]
     # @raise [RETS::Unauthorized]
     def request(args, &block)
-      # Reconnect to get a new session ID
-      if self.auth_timer and self.auth_timer <= Time.now.utc
-        self.auth_timer = Time.now.utc + self.auth_timeout
-
-        @headers.delete("Cookie")
-        @cookie_list = {}
-
-        self.request(:url => login_uri)
-      end
-
       if args[:params]
         request_uri = "#{args[:url].request_uri}?"
         args[:params].each do |k, v|
@@ -215,7 +205,18 @@ module RETS
             args[:block] = block
 
           elsif response.code == "401" or rets_code == "20037"
-            raise RETS::Unauthorized, "Cannot login, check credentials" if @auth_mode
+            raise RETS::Unauthorized, "Cannot login, check credentials" if @auth_mode and @retried_request
+            @retried_request = true
+
+            # We already have an auth mode, and the request wasn't retried.
+            # Meaning we know that we had a successful authentication but something happened so we should relogin.
+            if @auth_mode
+              @headers.delete("Cookie")
+              @cookie_list = {}
+
+              self.request(:url => login_uri)
+              return self.request(args.merge(:block => block))
+            end
 
             # Find a valid way of authenticating to the server as some will support multiple methods
             if response.header.get_fields("www-authenticate") and !response.header.get_fields("www-authenticate").empty?
@@ -247,20 +248,19 @@ module RETS
 
             self.setup_ua_authorization(@rets_data)
 
-            args[:block] ||= block
+            return self.request(args.merge(:block => block))
 
           # We just tried to auth and don't have access to the original block in yieldable form
           elsif args[:block]
+            @retried_request = nil
             args.delete(:block).call(response)
 
           elsif block_given?
+            @retried_request = nil
             yield response
           end
         end
       end
-
-      # Something failed, let's try that one more time
-      self.request(args) if args[:block]
     end
   end
 end

@@ -49,13 +49,11 @@ module RETS
             # In case it's a relative path and doesn't include the domain
             value = "#{base_url}#{value}" unless value =~ /(http|www)/
             urls[key] = URI.parse(value)
-          elsif key == :timeoutseconds
-            http.auth_timeout = value.to_i
-            http.auth_timer = Time.now.utc + http.auth_timeout
-            http.login_uri = urls[:login]
           end
         end
       end
+
+      http.login_uri = urls[:login]
 
       RETS::Base::Core.new(http, urls)
     end

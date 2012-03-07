@@ -16,6 +16,7 @@ describe RETS::Client do
   it "correctly passes data to the HTTP class" do
     http_mock = mock("HTTP")
     http_mock.should_receive(:request).with(hash_including(:url => URI("http://foobar.com/login/login.bar")))
+    http_mock.should_receive(:login_uri=).with(URI("http://foobar.com/login/login.bar"))
 
     RETS::HTTP.stub(:new).with(hash_including(:username => "foo", :password => "bar")).and_return(http_mock)
 
@@ -48,12 +49,6 @@ describe RETS::Client do
       urls[:search].should == URI("http://foobar.com:1234/rets/search")
       urls[:getmetadata].should == URI("http://foobar.com:1234/rets/getmetadata")
       urls[:getobject].should == URI("http://foobar.com:1234/rets/getobject")
-
-      http = client.instance_variable_get(:@http)
-      http.instance_variable_get(:@auth_timeout).should == 18000
-      timeout = http.instance_variable_get(:@auth_timer)
-      timeout.should_not be_nil
-      timeout.should be_within(2).of (Time.now.utc + 18000)
     end
 
     it "no spaces with relative paths" do
@@ -67,12 +62,6 @@ describe RETS::Client do
       urls[:search].should == URI("http://foobar.com/Search.asmx/Search")
       urls[:getmetadata].should == URI("http://foobar.com/GetMetadata.asmx/GetMetadata")
       urls[:getobject].should == URI("http://foobar.com/GetObject.asmx/GetObject")
-
-      http = client.instance_variable_get(:@http)
-      http.instance_variable_get(:@auth_timeout).should == 18000
-      timeout = http.instance_variable_get(:@auth_timer)
-      timeout.should_not be_nil
-      timeout.should be_within(2).of (Time.now.utc + 18000)
     end
 
     it "spaces with relative paths" do
