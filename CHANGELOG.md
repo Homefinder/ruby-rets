@@ -3,17 +3,17 @@
 ## 2.0.1
 
 ### API Changes
-  * `client.login` will now raise `ResponseError` errors if the <RETS> tag cannot be found in the response
-  * `client.login` added the ability to pass `:rets_version` to force the RETS Version used in HTTP requests (small speedup when used)
+  * `client.login` will now raise `ResponseError` errors if the RETS tag cannot be found in the response
+  * `client.login` added the ability to pass `:rets_version` to force the RETS Version used in HTTP requests. Provides a small speedup as it can skip one HTTP request depending on the RETS implementation
   * `client.get_object` can return both Content-Description or Description rather than just Description. Also will return Preferred
 
 ### Features
-  * Added support for TimeoutSeconds, after the timeout passes the gem seamlessly reauthenticate
+  * Added support for TimeoutSeconds, after the timeout passes the gem seamlessly reauthenticates
   * Improved the edge case handling for authentication requests to greatly increase compatability with logging into any RETS based system
 
 ### Fixes
   * Object multipart parsing no longer fails if the boundary is wrapped in quotes
-  * Response parsing won't fail if the RETS server uses odd casing for the "ReplyText" and "ReplyCode" args in <RETS>
+  * Response parsing won't fail if the RETS server uses odd casing for the "ReplyText" and "ReplyCode" args in RETS 
 
 ## 2.0.0
 
