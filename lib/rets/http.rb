@@ -202,7 +202,9 @@ module RETS
           # Digest can become stale requiring us to reload data
           if @auth_mode == :digest and response.header["www-authenticate"] =~ /stale=true/i
             save_digest(response.header["www-authenticate"].split(" ", 2)[1])
-            args[:block] = block
+
+            args[:block] ||= block
+            return self.request(args)
 
           elsif response.code == "401" or rets_code == "20037"
             raise RETS::Unauthorized, "Cannot login, check credentials" if @auth_mode and @retried_request
@@ -248,7 +250,8 @@ module RETS
 
             self.setup_ua_authorization(@rets_data)
 
-            return self.request(args.merge(:block => block))
+            args[:block] ||= block
+            return self.request(args)
 
           # We just tried to auth and don't have access to the original block in yieldable form
           elsif args[:block]

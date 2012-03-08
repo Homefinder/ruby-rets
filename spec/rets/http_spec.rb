@@ -60,9 +60,10 @@ describe RETS::HTTP do
 
       # Second request made after it figure out everything
       res_mock = mock("Response")
+      res_mock.stub(:body).and_return("Foo Bar")
       res_mock.stub(:code).and_return("200")
       res_mock.stub(:header).and_return({})
-      res_mock.should_receive(:test)
+      res_mock.should_receive(:test).with("Foo Bar")
 
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield
@@ -72,7 +73,7 @@ describe RETS::HTTP do
 
       # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
       http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar"})
-      http.request(:url => uri) {|r| r.test}
+      http.request(:url => uri) {|r| r.test(r.body)}
     end
 
     it "finds digest auth" do
@@ -96,9 +97,10 @@ describe RETS::HTTP do
 
       # Second request made after it figure out everything
       res_mock = mock("Response")
+      res_mock.stub(:body).and_return("Foo Bar")
       res_mock.stub(:code).and_return("200")
       res_mock.stub(:header).and_return({})
-      res_mock.should_receive(:test)
+      res_mock.should_receive(:test).with("Foo Bar")
 
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield
@@ -108,7 +110,7 @@ describe RETS::HTTP do
 
       # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
       http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar"})
-      http.request(:url => uri) {|r| r.test}
+      http.request(:url => uri) {|r| r.test(r.body)}
     end
 
     it "uses RETS-UA-Authorization" do
@@ -132,9 +134,10 @@ describe RETS::HTTP do
 
       # Second request made after it figure out everything
       res_mock = mock("Response")
+      res_mock.stub(:body).and_return("Foo Bar")
       res_mock.stub(:code).and_return("200")
       res_mock.stub(:header).and_return({})
-      res_mock.should_receive(:test)
+      res_mock.should_receive(:test).with("Foo Bar")
 
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield
@@ -144,7 +147,7 @@ describe RETS::HTTP do
 
       # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
       http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar", :password => "foo"})
-      http.request(:url => uri) {|r| r.test}
+      http.request(:url => uri) {|r| r.test(r.body)}
     end
 
     it "uses RETS-UA-Authorization after HTTP 200 with RETS ReplyCode 20037" do
@@ -168,12 +171,28 @@ describe RETS::HTTP do
 
       Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
 
-      # Second request made after it figure out everything
+      # Second one where the request still fails because it also needs WWW-Authenticaet which wasn't passed originally
+      header_mock = mock("Header")
+      header_mock.stub(:get_fields).with("www-authenticate").and_return(['Digest realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",qop="auth"'])
+      header_mock.stub(:[]).with("set-cookie").and_return(nil)
+      header_mock.stub(:[]).with("rets-version").and_return("RETS/1.8")
+
+      res_mock = mock("Response")
+      res_mock.stub(:code).and_return("401")
+      res_mock.stub(:header).and_return(header_mock)
+
+      http_mock = mock("HTTP")
+      http_mock.should_receive(:start).and_yield
+      http_mock.should_receive(:request_get).with(uri.request_uri, hash_including("User-Agent" => "FooBar", "RETS-Version" => "RETS/1.8", "RETS-UA-Authorization" => "Digest 3f56217348ed45a08e8669ed2a37c8da")).and_yield(res_mock)
+
+      Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
+
+      # Third request which was fine
       res_mock = mock("Response")
       res_mock.stub(:code).and_return("200")
       res_mock.stub(:body).and_return('<RETS ReplyCode="0" replytext="Success message goes here."></RETS>')
       res_mock.stub(:header).and_return({})
-      res_mock.should_receive(:test)
+      res_mock.should_receive(:test).with('<RETS ReplyCode="0" replytext="Success message goes here."></RETS>')
 
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield
@@ -183,7 +202,7 @@ describe RETS::HTTP do
 
       # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
       http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar", :password => "foo"})
-      http.request(:url => uri, :check_response => true) {|r| r.test}
+      http.request(:url => uri, :check_response => true) {|r| r.test(r.body)}
 
       rets_data = http.instance_variable_get(:@rets_data)
       rets_data[:session_id].should == "4f220ee66794dc9281000002"
@@ -202,7 +221,8 @@ describe RETS::HTTP do
     res_mock = mock("Response")
     res_mock.stub(:code).and_return("200")
     res_mock.stub(:header).and_return(header_mock)
-    res_mock.should_receive(:test)
+    res_mock.stub(:body).and_return("Foo Bar")
+    res_mock.should_receive(:test).with("Foo Bar")
 
     http_mock = mock("HTTP")
     http_mock.should_receive(:start).and_yield
@@ -212,7 +232,7 @@ describe RETS::HTTP do
 
     # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
     http = RETS::HTTP.new(:username => "foo", :password => "bar")
-    http.request(:url => uri) {|r| r.test}
+    http.request(:url => uri) {|r| r.test(r.body)}
 
     cookies = http.instance_variable_get(:@cookie_list)
     cookies["RETS-Session-ID"].should == "4f220ee66794dc9281000002"
@@ -270,6 +290,7 @@ describe RETS::HTTP do
   it "refreshes a digest if it becomes stale" do
     uri = URI("http://foobar.com/login/login.bar")
 
+    # Stale request
     digest = 'Digest realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",stale=true,qop="auth"'
 
     header_mock = mock("Header")
@@ -284,16 +305,33 @@ describe RETS::HTTP do
     http_mock.should_receive(:start).and_yield
     http_mock.should_receive(:request_get).with(uri.request_uri, anything).and_yield(res_mock)
 
-    Net::HTTP.should_receive(:new).and_return(http_mock)
+    Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
+
+    # Good request
+    header_mock = mock("Header")
+    header_mock.should_receive(:[]).with("www-authenticate").and_return(nil)
+    header_mock.should_receive(:[]).with("set-cookie").and_return(nil)
+
+    res_mock = mock("Response")
+    res_mock.stub(:body).and_return("Foo Bar")
+    res_mock.stub(:code).and_return("200")
+    res_mock.stub(:header).and_return(header_mock)
+    res_mock.should_receive(:test).with("Foo Bar")
+
+    http_mock = mock("HTTP")
+    http_mock.should_receive(:start).and_yield
+    http_mock.should_receive(:request_get).with(uri.request_uri, anything).and_yield(res_mock)
+
+    Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
 
     # There's no easy way of checking if a yield or proc was called, so will just fake it by calling a stub with should_receive
     http = RETS::HTTP.new(:username => "foo", :password => "bar")
 
     http.instance_variable_set(:@auth_mode, :digest)
     http.should_receive(:save_digest).with(digest)
-    http.should_receive(:create_digest).with("GET", uri.request_uri).and_return(nil)
+    http.should_receive(:create_digest).twice.with("GET", uri.request_uri).and_return(nil)
 
-    http.request(:url => uri)
+    http.request(:url => uri) {|r| r.test(r.body) }
   end
 
   it "reauthenticates after a HTTP 401 with successful authentication" do
@@ -302,7 +340,7 @@ describe RETS::HTTP do
     tests = [
       {:code => "401", :uri => uri, :hash_match => hash_including("Cookie" => "RETS-Session-ID=foofoo")},
       {:cookie => "barfoo", :code => "200", :uri => login_uri, :hash_match => hash_not_including("Cookie" => "RETS-Session-ID=foofoo")},
-      {:code => "200", :uri => uri, :hash_match => hash_including("Cookie" => "RETS-Session-ID=barfoo")}
+      {:code => "200", :uri => uri, :hash_match => hash_including("Cookie" => "RETS-Session-ID=barfoo"), :body => "Foo Bar"}
     ]
 
     tests.each do |config|
@@ -320,6 +358,11 @@ describe RETS::HTTP do
       res_mock.stub(:code).and_return(config[:code])
       res_mock.stub(:header).and_return(header_mock)
 
+      if config[:body]
+        res_mock.stub(:body).and_return(config[:body])
+        res_mock.should_receive(:test).with(config[:body])
+      end
+
       http_mock = mock("HTTP")
       http_mock.should_receive(:start).and_yield
       http_mock.should_receive(:request_get).with(config[:uri].request_uri, config[:hash_match]).and_yield(res_mock)
@@ -332,7 +375,8 @@ describe RETS::HTTP do
     http.instance_variable_set(:@headers, {"Cookie" => "RETS-Session-ID=foofoo"})
     http.save_digest('realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",qop="auth"')
     http.login_uri = login_uri
-    http.request(:url => uri)
+
+    http.request(:url => uri) {|r| r.test(r.body) }
   end
 
   it "reauthenticates after a HTTP 401 and then raises an exception after the subsequent failure" do
