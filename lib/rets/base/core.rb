@@ -36,6 +36,8 @@ module RETS
         end
 
         @http.request(:url => @urls[:logout])
+
+        nil
       end
 
       ##
@@ -83,6 +85,8 @@ module RETS
           @request_size, @request_hash = stream.size, stream.hash
           @rets_data = sax.rets_data
         end
+
+        nil
       end
 
       ##
@@ -186,6 +190,8 @@ module RETS
             end
           end
         end
+
+        nil
       end
 
       ##
@@ -240,6 +246,8 @@ module RETS
           @request_size, @request_hash = stream.size, stream.hash
           @rets_data = sax.rets_data
         end
+
+        nil
       end
     end
   end
