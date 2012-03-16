@@ -1,5 +1,14 @@
 # Overview
 
+## 2.0.2
+
+### Features
+  * Dropped support for TimeoutSeconds, instead if an HTTP 401 is received after a successful request then a reauthentication is forced. Provides better compatibility with how some RETS implementations handle sessions
+
+### Fixes
+  * Client methods no longer return the HTTP request
+  * Requests will correctly be called after a HTTP digest becomes stale
+
 ## 2.0.1
 
 ### API Changes
