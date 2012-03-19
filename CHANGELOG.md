@@ -1,5 +1,10 @@
 # Overview
 
+## 2.0.3
+
+### Fixes
+  * Fixed a stack overflow due to how Interealty handles User-Agent authentication errors
+
 ## 2.0.2
 
 ### Features
