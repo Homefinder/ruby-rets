@@ -40,33 +40,43 @@ module RETS
         @digest[k] = (k != "algorithm" and k != "stale") && v[1..-2] || v
       end
 
-      @digest["qop"] ||= "auth"
-      @digest_type = @digest["qop"].split(",")
+      @digest_type = @digest["qop"] ? @digest["qop"].split(",") : []
     end
 
     ##
     # Creates a HTTP digest header.
     def create_digest(method, request_uri)
+      # http://en.wikipedia.org/wiki/Digest_access_authentication
       first = Digest::MD5.hexdigest("#{@config[:username]}:#{@digest["realm"]}:#{@config[:password]}")
       second = Digest::MD5.hexdigest("#{method}:#{request_uri}")
-      cnonce = Digest::MD5.hexdigest("#{@headers["User-Agent"]}:#{@config[:password]}:#{@request_count}:#{@digest["nonce"]}")
 
+      # Using the "newer" authentication QOP
       if @digest_type.include?("auth")
+        cnonce = Digest::MD5.hexdigest("#{@headers["User-Agent"]}:#{@config[:password]}:#{@request_count}:#{@digest["nonce"]}")
         hash = Digest::MD5.hexdigest("#{first}:#{@digest["nonce"]}:#{"%08X" % @request_count}:#{cnonce}:#{@digest["qop"]}:#{second}")
+      # Nothing specified, so default to the old one
+      elsif @digest_type.empty?
+        hash = Digest::MD5.hexdigest("#{first}:#{@digest["nonce"]}:#{second}")
       else
-        raise RETS::HTTPError, "Cannot determine auth type for server"
+        raise RETS::HTTPError, "Cannot determine auth type for server (#{@digest_type.join(",")})"
       end
 
       http_digest = "Digest username=\"#{@config[:username]}\", "
       http_digest << "realm=\"#{@digest["realm"]}\", "
       http_digest << "nonce=\"#{@digest["nonce"]}\", "
       http_digest << "uri=\"#{request_uri}\", "
-      http_digest << "algorithm=MD5, "
+      http_digest << "algorithm=MD5, " unless @digest_type.empty?
       http_digest << "response=\"#{hash}\", "
-      http_digest << "opaque=\"#{@digest["opaque"]}\", "
-      http_digest << "qop=\"#{@digest["qop"]}\", "
-      http_digest << "nc=#{"%08X" % @request_count}, "
-      http_digest << "cnonce=\"#{cnonce}\""
+      http_digest << "opaque=\"#{@digest["opaque"]}\""
+
+      unless @digest_type.empty?
+        http_digest << ", "
+        http_digest << "qop=\"#{@digest["qop"]}\", "
+        http_digest << "nc=#{"%08X" % @request_count}, "
+        http_digest << "cnonce=\"#{cnonce}\""
+      end
+
+      http_digest
     end
 
     ##
