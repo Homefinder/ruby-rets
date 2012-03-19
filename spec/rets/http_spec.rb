@@ -207,6 +207,51 @@ describe RETS::HTTP do
       rets_data = http.instance_variable_get(:@rets_data)
       rets_data[:session_id].should == "4f220ee66794dc9281000002"
     end
+
+    it "won't infinite loop on continous RETS ReplyCode 20037 with HTTP 200" do
+      uri = URI("http://foobar.com/login/login.bar")
+
+      # The initial response while it's figuring out what authentication is
+      header_mock = mock("Header")
+      header_mock.stub(:get_fields).with("set-cookie").and_return([])
+      header_mock.stub(:get_fields).with("www-authenticate").and_return([])
+      header_mock.stub(:[]).with("rets-version").and_return(nil)
+      header_mock.stub(:[]).with("set-cookie").and_return(nil)
+
+      res_mock = mock("Response")
+      res_mock.stub(:code).and_return("200")
+      res_mock.stub(:body).and_return('<RETS ReplyCode="20037" replytext="Failure message goes here."></RETS>')
+      res_mock.stub(:header).and_return(header_mock)
+
+      http_mock = mock("HTTP1")
+      http_mock.should_receive(:start).and_yield
+      http_mock.should_receive(:request_get).with(uri.request_uri, hash_including({"User-Agent" => "FooBar"})).and_yield(res_mock)
+
+      Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
+
+      # Second response where it still fails
+      header_mock = mock("Header")
+      header_mock.stub(:get_fields).with("set-cookie").and_return([])
+      header_mock.stub(:get_fields).with("www-authenticate").and_return([])
+      header_mock.stub(:[]).with("rets-version").and_return(nil)
+      header_mock.stub(:[]).with("set-cookie").and_return(nil)
+
+      res_mock = mock("Response")
+      res_mock.stub(:code).and_return("200")
+      res_mock.stub(:body).and_return('<RETS ReplyCode="20037" replytext="Failure message goes here."></RETS>')
+      res_mock.stub(:header).and_return(header_mock)
+
+      http_mock = mock("HTTP2")
+      http_mock.should_receive(:start).and_yield
+      http_mock.should_receive(:request_get).with(uri.request_uri, {"User-Agent" => "FooBar",  "RETS-Version" => "RETS/1.7", "RETS-UA-Authorization" => "Digest d2469c44dd4b56a1b9021ea481ec0e70"}).and_yield(res_mock)
+
+      Net::HTTP.should_receive(:new).ordered.and_return(http_mock)
+
+      # Off we go
+      http = RETS::HTTP.new(:username => "foo", :password => "bar", :useragent => {:name => "FooBar", :password => "foo"})
+
+      lambda { http.request(:url => uri, :check_response => true) }.should raise_error(RETS::Unauthorized)
+    end
   end
 
   it "handles cookie storing and passing" do

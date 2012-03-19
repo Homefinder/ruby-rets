@@ -207,7 +207,7 @@ module RETS
             return self.request(args)
 
           elsif response.code == "401" or rets_code == "20037"
-            raise RETS::Unauthorized, "Cannot login, check credentials" if @auth_mode and @retried_request
+            raise RETS::Unauthorized, "Cannot login, check credentials" if ( @auth_mode and @retried_request ) or ( @retried_request and rets_code == "20037" )
             @retried_request = true
 
             # We already have an auth mode, and the request wasn't retried.
