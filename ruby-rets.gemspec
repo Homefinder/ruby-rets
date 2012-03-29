@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email       = ["zach.anker@gmail.com"]
   s.homepage    = "http://github.com/Placester/ruby-rets"
   s.summary     = "RETS 1.x library for Ruby"
-  s.description = "Simplifies communication with RETS servers for pulling data from them."
+  s.description = "Gem for pulling data from RETS (http://rets.org) servers."
 
   s.required_rubygems_version = ">= 1.3.6"
   s.rubyforge_project         = "ruby-rets"
