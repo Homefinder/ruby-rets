@@ -1,6 +1,6 @@
 Overview
 ===
-Main focus is on a simple gem for pulling data from the RETS server through SAX parsing rather than requiring documents to be written to disk and then manually passed through a SAX parser. Should support any 1.x implementation.
+Simplifies the process of pulling data from RETS servers without having to worry about various authentication setups, should support all 1.x implementations. Parsing uses SAX to stream data as it comes rather than having to pull the entire document down and parse it all at once as some servers can return quite a lot of data.
 
 Compability
 -
