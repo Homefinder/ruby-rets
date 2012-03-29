@@ -1,6 +1,6 @@
 # Overview
 
-## 2.0.4 [Pending]
+## 2.0.4 [In Progress]
 
 ### Features
   * Added support for RETS servers that use digest authentication without the quality of protection flag (MRIS)
