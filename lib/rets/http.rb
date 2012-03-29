@@ -1,5 +1,5 @@
 require "cgi"
-require "net/http"
+require "net/https"
 require "digest"
 
 module RETS
@@ -163,6 +163,8 @@ module RETS
       http = ::Net::HTTP.new(args[:url].host, args[:url].port)
       http.read_timeout = args[:read_timeout] if args[:read_timeout]
       http.set_debug_output(@config[:debug_output]) if @config[:debug_output]
+      http.use_ssl = (args[:url].port == 443) ? true : false
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
       http.start do
         http.request_get(request_uri, headers) do |response|
