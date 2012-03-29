@@ -15,6 +15,10 @@ module RETS
     #   * :name [String, Optional] - Name to set the User-Agent to
     #   * :password [String, Optional] - Password to use for RETS-UA-Authorization
     # @option args [String, Optional] :rets_version Forces RETS-UA-Authorization on the first request if this and useragent name/password are set. Can be auto detected, but this lets you bypass 1 - 2 additional authentication requests initially.
+    # @option args [Hash, Optional] :http Additional configuration for the HTTP requests
+    #   * :verify_mode [Integer, Optional] How to verify the SSL certificate when connecting through HTTPS, either OpenSSL::SSL::VERIFY_PEER or OpenSSL::SSL::VERIFY_NONE, defaults to OpenSSL::SSL::VERIFY_NONE
+    #   * :ca_file [String, Optional] Path to the CA certification file in PEM format
+    #   * :ca_path [String, Optional] Path to the directory containing CA certifications in PEM format
     #
     # @raise [ArgumentError]
     # @raise [RETS::APIError]

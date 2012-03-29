@@ -11,7 +11,7 @@ module RETS
     def initialize(args)
       @headers = {"User-Agent" => "Ruby RETS/v#{RETS::VERSION}"}
       @request_count = 0
-      @config = args
+      @config = {:http => {}}.merge(args)
       @rets_data, @cookie_list = {}, {}
 
       if @config[:useragent] and @config[:useragent][:name]
@@ -163,8 +163,12 @@ module RETS
       http = ::Net::HTTP.new(args[:url].host, args[:url].port)
       http.read_timeout = args[:read_timeout] if args[:read_timeout]
       http.set_debug_output(@config[:debug_output]) if @config[:debug_output]
-      http.use_ssl = (args[:url].port == 443) ? true : false
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      if args[:url].scheme == "https"
+        http.use_ssl = true
+        http.verify_mode = @config[:http][:verify_mode] || OpenSSL::SSL::VERIFY_NONE
+        http.ca_file = @config[:http][:ca_file] if @config[:http][:ca_file]
+        http.ca_path = @config[:http][:ca_path] if @config[:http][:ca_path]
+      end
 
       http.start do
         http.request_get(request_uri, headers) do |response|

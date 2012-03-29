@@ -1,6 +1,22 @@
 require "spec_helper"
 
 describe RETS::HTTP do
+  it "switches to SSL based on URL" do
+    uri = URI("https://foobar.com/login/login.bar")
+
+    http_mock = mock("HTTP")
+    http_mock.should_receive(:use_ssl=).with(true)
+    http_mock.should_receive(:verify_mode=).with(OpenSSL::SSL::VERIFY_PEER)
+    http_mock.should_receive(:ca_file=).with("/foo/bar/ca.pem")
+    http_mock.should_receive(:ca_path=).with("/foo/bar")
+    http_mock.should_receive(:start)
+
+    Net::HTTP.should_receive(:new).and_return(http_mock)
+
+    http = RETS::HTTP.new({:http => {:ca_file => "/foo/bar/ca.pem", :ca_path => "/foo/bar", :verify_mode => OpenSSL::SSL::VERIFY_PEER}})
+    http.request(:url => uri)
+  end
+
   context "HTTP authentication" do
     it "parses the digest header" do
         http = RETS::HTTP.new({})
