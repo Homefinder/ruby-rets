@@ -4,6 +4,10 @@
 
 ### Features
   * Added support for RETS servers that use digest authentication without the quality of protection flag (MRIS)
+  * Added SSL support (Paul Trippett)
+
+### Fixes
+  * Fixed metadata parsing breaking if a field wasn't filled out (Paul Trippett)
 
 ## 2.0.3
 
