@@ -4,7 +4,7 @@ Simplifies the process of pulling data from RETS servers without having to worry
 
 Compability
 -
-Tested against Ruby 1.8.7, 1.9.2 and 2.0.0, build history is available [here](http://travis-ci.org/Placester/ruby-rets).
+Tested against Ruby 1.8.7, 1.9.2, 2.0.0, RBX and JRuby, build history is available [here](http://travis-ci.org/Placester/ruby-rets).
 
 <img src="https://secure.travis-ci.org/Placester/ruby-rets.png?branch=master&.png"/>
 
