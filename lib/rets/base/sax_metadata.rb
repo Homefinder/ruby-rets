@@ -41,11 +41,11 @@ class RETS::Base::SAXMetadata < Nokogiri::XML::SAX::Document
     return unless @current_tag
 
     if @current_tag == "COLUMNS"
-      @columns = @buffer.split(/#{@rets_data[:delimiter]}/)
+      @columns = @buffer.split(@rets_data[:delimiter])
     elsif tag == "DATA"
       data = {}
 
-      list = @buffer.split(/#{@rets_data[:delimiter]}/)
+      list = @buffer.split(@rets_data[:delimiter])
       list.each_index do |index|
         next if @columns[index].nil? or @columns[index] == ""
         data[@columns[index]] = list[index]

@@ -42,12 +42,12 @@ describe RETS::Base::Core do
         attrs["Class"].should == "Place"
 
         data.should == [
-          {"MetadataEntryID" => "BB1662B7C5F22A0F905FD59E718CA05E", "SystemName" => "DM_LOC", "StandardName" => "DM_LOC", "LongName" => "DM_LOC", "DBName" => "16", "ShortName" => "Character", "MaximumLength" => "1"},
-          {"MetadataEntryID" => "9457FC28CEB408103E13533E4A5B6BD1", "SystemName" => "DM_ID", "StandardName" => "DM_ID", "LongName" => "DM_ID", "DBName" => "10", "ShortName" => "Character", "MaximumLength" => "1", "DataType" => "1"},
-          {"MetadataEntryID" => "BEA5955B308361A1B07BC55042E25E54", "SystemName" => "DM_LVL", "StandardName" => "DM_LVL", "LongName" => "DM_LVL", "DBName" => "5", "ShortName" => "Decimal", "MaximumLength" => "0", "DataType" => "1"},
-          {"MetadataEntryID" => "F9D1152547C0BDE01830B7E8BD60024C", "SystemName" => "DM_MLSID", "StandardName" => "DM_MLSID", "LongName" => "DM_MLSID", "DBName" => "10", "ShortName" => "Character", "MaximumLength" => "1"},
-          {"MetadataEntryID" => "AF4732711661056EADBF798BA191272A", "SystemName" => "DM_ORDR", "StandardName" => "DM_ORDR", "LongName" => "DM_ORDR", "DBName" => "5", "ShortName" => "Decimal", "MaximumLength" => "0", "DataType" => "1"},
-          {"MetadataEntryID" => "008BD5AD93B754D500338C253D9C1770", "SystemName" => "DM_TYPE", "StandardName" => "DM_TYPE", "LongName" => "DM_TYPE", "DBName" => "5", "ShortName" => "Decimal", "MaximumLength" => "0", "DataType" => "1"}
+          {"MetadataEntryID" => "BB1662B7C5F22A0F905FD59E718CA05E", "SystemName" => "DM_LOC", "StandardName" => "", "LongName" => "DM_LOC", "DBName" => "DM_LOC", "ShortName" => "", "MaximumLength" => "16", "DataType" => "Character", "Precision" => "", "Searchable" => "1"},
+          {"MetadataEntryID" => "9457FC28CEB408103E13533E4A5B6BD1", "SystemName" => "DM_ID", "StandardName" => "", "LongName" => "DM_ID", "DBName" => "DM_ID", "ShortName" => "", "MaximumLength" => "10", "DataType" => "Character", "Precision" => "", "Searchable" => "1", "Interpretation" => "", "Alignment" => "", "UseSeparator" => "", "EditMaskID" => "", "LookupName" => "", "MaxSelect" => "", "Units" => "", "Index" => "", "Minimum" => "", "Maximum" => "", "Default" => "", "Required" => "", "SearchHelpID" => "", "Unique" => "1"},
+          {"MetadataEntryID" => "BEA5955B308361A1B07BC55042E25E54", "SystemName" => "DM_LVL", "StandardName" => "", "LongName" => "DM_LVL", "DBName" => "DM_LVL", "ShortName" => "", "MaximumLength" => "5", "DataType" => "Decimal", "Precision" => "0", "Searchable" => "1"},
+          {"MetadataEntryID" => "F9D1152547C0BDE01830B7E8BD60024C", "SystemName" => "DM_MLSID", "StandardName" => "", "LongName" => "DM_MLSID", "DBName" => "DM_MLSID", "ShortName" => "", "MaximumLength" => "10", "DataType" => "Character", "Precision" => "", "Searchable" => "1"},
+          {"MetadataEntryID" => "AF4732711661056EADBF798BA191272A", "SystemName" => "DM_ORDR", "StandardName" => "", "LongName" => "DM_ORDR", "DBName" => "DM_ORDR", "ShortName" => "", "MaximumLength" => "5", "DataType" => "Decimal", "Precision" => "0", "Searchable" => "1"},
+          {"MetadataEntryID" => "008BD5AD93B754D500338C253D9C1770", "SystemName" => "DM_TYPE", "StandardName" => "", "LongName" => "DM_TYPE", "DBName" => "DM_TYPE", "ShortName" => "", "MaximumLength" => "5", "DataType" => "Decimal", "Precision" => "0", "Searchable" => "1"}
         ]
       end
 
