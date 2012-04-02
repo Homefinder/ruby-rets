@@ -156,8 +156,10 @@ module RETS
             parts = body.split("--#{boundary}\r\n")
             parts.last.gsub!("\r\n--#{boundary}--", "")
             parts.each do |part|
-              next if part == "\r\n"
-              headers, content = part.strip.split("\r\n\r\n", 2)
+              part.strip!
+              next if part == ""
+
+              headers, content = part.split("\r\n\r\n", 2)
 
               parsed_headers = {}
               headers.split("\r\n").each do |line|
