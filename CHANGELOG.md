@@ -1,6 +1,6 @@
 # Overview
 
-## 2.0.4 [In Progress]
+## 2.0.4
 
 ### Features
   * Added support for RETS servers that use digest authentication without the quality of protection flag (MRIS)
@@ -8,6 +8,7 @@
 
 ### Fixes
   * Fixed metadata parsing breaking if a field wasn't filled out (Paul Trippett)
+  * Fixed multipart parsing for `client.get_object` if a part is blank
 
 ## 2.0.3
 
