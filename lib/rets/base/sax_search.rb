@@ -51,8 +51,13 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
         next if @columns[index].nil? or @columns[index] == ""
         data[@columns[index]] = list[index]
       end
+      
+      if @block.arity == 1
+        @block.call(data)
+      else
+        @block.call(@rets_data[:count], data)
+      end
 
-      @block.call(data)
     end
   end
 end
