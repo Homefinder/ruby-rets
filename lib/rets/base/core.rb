@@ -238,7 +238,7 @@ module RETS
           req[:params][:Count] = 1
         end
 
-        @request_size, @request_hash, @rets_data = nil, nil, nil
+        @request_size, @request_hash, @rets_data = nil, nil, {}
         @http.request(req) do |response|
           stream = RETS::StreamHTTP.new(response)
           sax = RETS::Base::SAXSearch.new(@rets_data, block)
@@ -246,7 +246,6 @@ module RETS
           Nokogiri::XML::SAX::Parser.new(sax).parse_io(stream)
 
           @request_size, @request_hash = stream.size, stream.hash
-          @rets_data = sax.rets_data
         end
 
         nil
