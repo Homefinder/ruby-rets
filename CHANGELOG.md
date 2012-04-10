@@ -1,5 +1,10 @@
 # Overview
 
+## 2.0.5 [In Progress]
+
+### Features
+  * Make `client.rets_data` available immediately when calling `client.search` rather than having to wait until it finishes (Paul Trippett)
+
 ## 2.0.4
 
 ### Features
@@ -37,7 +42,7 @@
 
 ### Fixes
   * Object multipart parsing no longer fails if the boundary is wrapped in quotes
-  * Response parsing won't fail if the RETS server uses odd casing for the "ReplyText" and "ReplyCode" args in RETS 
+  * Response parsing won't fail if the RETS server uses odd casing for the "ReplyText" and "ReplyCode" args in RETS
 
 ## 2.0.0
 
