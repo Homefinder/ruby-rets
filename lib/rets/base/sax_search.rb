@@ -2,9 +2,9 @@
 class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
   attr_reader :rets_data
 
-  def initialize(block)
+  def initialize(rets_data, block)
     @block = block
-    @rets_data = {}
+    @rets_data = rets_data
   end
 
   def start_element(tag, attrs)
@@ -51,8 +51,9 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
         next if @columns[index].nil? or @columns[index] == ""
         data[@columns[index]] = list[index]
       end
-
+      
       @block.call(data)
+
     end
   end
 end
