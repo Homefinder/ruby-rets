@@ -16,11 +16,11 @@ module RETS
 
       if @config[:useragent] and @config[:useragent][:name]
         @headers["User-Agent"] = @config[:useragent][:name]
+      end
 
-        if @config[:rets_version]
-          @rets_data[:version] = @config[:rets_version]
-          self.setup_ua_authorization(@config[:rets_version])
-        end
+      if @config[:rets_version]
+        @rets_data[:version] = @config[:rets_version]
+        self.setup_ua_authorization(:version => @config[:rets_version])
       end
 
       if @config[:auth_mode] == :basic
