@@ -4,6 +4,7 @@
 
 ### Features
   * Make `client.rets_data` available immediately when calling `client.search` rather than having to wait until it finishes (Paul Trippett)
+  * `:rets_version` can be passed to `client.login` without the User-Agent fields being set, for RETS servers that require the version to be passed initially
 
 ## 2.0.4
 
