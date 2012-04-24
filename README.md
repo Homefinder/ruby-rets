@@ -26,6 +26,18 @@ Examples
       puts object[:content]
     end
 
+VCR / WebMock
+-
+Due to the streaming parser, the search features won't work with a library like VCR or Ephemeral Response. For WebMock, you can use the below patch to enable support for saving the HTTP requests to speed up your own tests.
+
+    module Net
+        module WebMockHTTPResponse
+            def self.extended(response)
+                response.instance_variable_set(:@socket, StringIO.new(response.body))
+            end
+        end
+    end
+
 License
 -
 Dual licensed under MIT and GPL.
