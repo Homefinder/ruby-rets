@@ -243,13 +243,13 @@ module RETS
                 if mode == "Digest"
                   save_digest(header)
                   @auth_mode = :digest
+                  break
 
                 elsif mode == "Basic"
                   @headers.merge!("Authorization" => create_basic)
                   @auth_mode = :basic
                 end
 
-                break if @auth_mode
               end
 
               unless @auth_mode
