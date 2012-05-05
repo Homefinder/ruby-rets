@@ -32,7 +32,7 @@ module RETS
     # Creates and manages the HTTP digest auth
     # if the WWW-Authorization header is passed, then it will overwrite what it knows about the auth data.
     def save_digest(header)
-      @request_count = 0
+      #@request_count = 0
 
       @digest = {}
       header.split(",").each do |line|
