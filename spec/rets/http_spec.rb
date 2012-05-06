@@ -97,7 +97,7 @@ describe RETS::HTTP do
 
       # The initial response while it's figuring out what authentication is
       header_mock = mock("Header")
-      header_mock.stub(:get_fields).with("www-authenticate").and_return(['Digest realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",qop="auth"'])
+      header_mock.stub(:get_fields).with("www-authenticate").and_return(['Basic Zm9vOmJhcg==', 'Digest realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",qop="auth"'])
       header_mock.stub(:[]).with("rets-version").and_return("RETS/1.8")
       header_mock.stub(:[]).with("set-cookie").and_return(nil)
 
@@ -355,7 +355,8 @@ describe RETS::HTTP do
     digest = 'Digest realm="Foo Bar",nonce="7d8ca69b352016f88d7c3d8a040dc9e0",opaque="431d3681382c9550ffc0525839a37aa3",stale=true,qop="auth"'
 
     header_mock = mock("Header")
-    header_mock.should_receive(:[]).twice.with("www-authenticate").and_return("Digest #{digest}")
+    header_mock.should_receive(:get_fields).with("www-authenticate").and_return(["Digest #{digest}"])
+    header_mock.should_receive(:[]).with("www-authenticate").and_return("Digest #{digest}")
     header_mock.should_receive(:[]).with("set-cookie").and_return(nil)
 
     res_mock = mock("Response")

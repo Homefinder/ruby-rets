@@ -27,22 +27,18 @@ module RETS
         @auth_mode = @config.delete(:auth_mode)
       end
     end
-    
+
     def get_digest(header)
-      if header
-        header.each do |text|
-          mode, header = text.split(" ", 2)
-          if mode == "Digest"
-            return header
-          end
-        end
+      return unless header
+
+      header.each do |text|
+        mode, text = text.split(" ", 2)
+        return text if mode == "Digest"
       end
+
+      nil
     end
-    
-    def has_digest?(header)
-      !get_digest(header).nil?
-    end
-    
+
     ##
     # Creates and manages the HTTP digest auth
     # if the WWW-Authorization header is passed, then it will overwrite what it knows about the auth data.
@@ -253,13 +249,15 @@ module RETS
 
             # Find a valid way of authenticating to the server as some will support multiple methods
             if response.header.get_fields("www-authenticate") and !response.header.get_fields("www-authenticate").empty?
-              if has_digest?(response.header.get_fields("www-authenticate"))
-                  @headers.merge!("Authorization" => create_basic)
-                  @auth_mode = :basic
+              digest = get_digest(response.header.get_fields("www-authenticate"))
+              if digest
+                save_digest(digest)
+                @auth_mode = :digest
               else
-                  save_digest(get_digest(response.header.get_fields("www-authenticate")))
-                  @auth_mode = :digest
+                @headers.merge!("Authorization" => create_basic)
+                @auth_mode = :basic
               end
+
               unless @auth_mode
                 raise RETS::HTTPError.new("Cannot authenticate, no known mode found", response.code)
               end
