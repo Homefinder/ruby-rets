@@ -27,7 +27,22 @@ module RETS
         @auth_mode = @config.delete(:auth_mode)
       end
     end
-
+    
+    def get_digest(header)
+      if header
+        header.each do |text|
+          mode, header = text.split(" ", 2)
+          if mode == "Digest"
+            return header
+          end
+        end
+      end
+    end
+    
+    def has_digest?(header)
+      !get_digest(header).nil?
+    end
+    
     ##
     # Creates and manages the HTTP digest auth
     # if the WWW-Authorization header is passed, then it will overwrite what it knows about the auth data.
@@ -217,7 +232,7 @@ module RETS
 
           # Digest can become stale requiring us to reload data
           if @auth_mode == :digest and response.header["www-authenticate"] =~ /stale=true/i
-            save_digest(response.header["www-authenticate"].split(" ", 2)[1])
+            save_digest(get_digest(response.header.get_fields("www-authenticate")))
 
             args[:block] ||= block
             return self.request(args)
@@ -238,20 +253,13 @@ module RETS
 
             # Find a valid way of authenticating to the server as some will support multiple methods
             if response.header.get_fields("www-authenticate") and !response.header.get_fields("www-authenticate").empty?
-              response.header.get_fields("www-authenticate").each do |text|
-                mode, header = text.split(" ", 2)
-                if mode == "Digest"
-                  save_digest(header)
-                  @auth_mode = :digest
-                  break
-
-                elsif mode == "Basic"
+              if has_digest?(response.header.get_fields("www-authenticate"))
                   @headers.merge!("Authorization" => create_basic)
                   @auth_mode = :basic
-                end
-
+              else
+                  save_digest(get_digest(response.header.get_fields("www-authenticate")))
+                  @auth_mode = :digest
               end
-
               unless @auth_mode
                 raise RETS::HTTPError.new("Cannot authenticate, no known mode found", response.code)
               end
