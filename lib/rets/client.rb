@@ -51,8 +51,13 @@ module RETS
 
           if URL_KEYS[key]
             # In case it's a relative path and doesn't include the domain
-            value = "#{base_url}#{value}" unless value =~ /(http|www)/
-            urls[key] = URI.parse(value)
+            if value =~ /(http|www)/
+              urls[key] = URI.parse(value)
+            else
+              key_url = URI.parse(urls[:login].to_s)
+              key_url.path = value
+              urls[key] = key_url
+            end
           end
         end
       end
