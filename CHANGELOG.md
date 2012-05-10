@@ -8,8 +8,8 @@
 
 ### Fixes
   * Default to HTTP Digest authentication when Digest and Basic are provided (Paul Trippett)
-   * Fixed authentication header parser if a server returns Basic/Digest and the Digest data goes stale (Paul Trippett)
-
+  * Fixed authentication header parser if a server returns Basic/Digest and the Digest data goes stale (Paul Trippett)
+  * Fixed query strings from the initial login request not being saved when discovery service URLs (Paul Trippett)
 
 ## 2.0.4
 
