@@ -149,7 +149,8 @@ module RETS
     # @raise [RETS::Unauthorized]
     def request(args, &block)
       if args[:params]
-        request_uri = "#{args[:url].request_uri}?"
+        url_terminator = (args[:url].request_uri.include?("?")) ? "&" : "?"
+        request_uri = "#{args[:url].request_uri}#{url_terminator}"
         args[:params].each do |k, v|
           request_uri << "#{k}=#{CGI::escape(v.to_s)}&" if v
         end
