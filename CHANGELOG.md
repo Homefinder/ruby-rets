@@ -1,6 +1,6 @@
 # Overview
 
-## 2.0.5 [In Progress]
+## 2.0.5
 
 ### Features
   * Make `client.rets_data` available immediately when calling `client.search` rather than having to wait until it finishes (Paul Trippett)
