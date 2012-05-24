@@ -177,7 +177,6 @@ module RETS
       else
         request_uri = args[:url].request_uri
       end
-      puts request_uri
 
       headers = args[:headers]
 
