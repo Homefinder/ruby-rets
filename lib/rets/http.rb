@@ -1,4 +1,3 @@
-require "cgi"
 require "net/https"
 require "digest"
 
@@ -27,7 +26,28 @@ module RETS
         @auth_mode = @config.delete(:auth_mode)
       end
     end
-
+    
+    def url_encode(str)
+      encoded_string = ""
+      str.each_char do |char|
+        case char
+        when "+"
+          encoded_string << "%2b"
+        when "="
+          encoded_string << "%3d"
+        when "?"
+          encoded_string << "3f"
+        when "&"
+          encoded_string << "%26"
+        when "%"
+          encoded_string << "%25"
+        else
+          encoded_string << char
+        end
+      end
+      encoded_string
+    end
+    
     def get_digest(header)
       return unless header
 
@@ -149,9 +169,10 @@ module RETS
     # @raise [RETS::Unauthorized]
     def request(args, &block)
       if args[:params]
-        request_uri = "#{args[:url].request_uri}?"
+        url_terminator = (args[:url].request_uri.include?("?")) ? "&" : "?"
+        request_uri = "#{args[:url].request_uri}#{url_terminator}"
         args[:params].each do |k, v|
-          request_uri << "#{k}=#{CGI::escape(v.to_s)}&" if v
+          request_uri << "#{k}=#{url_encode(v.to_s)}&" if v
         end
       else
         request_uri = args[:url].request_uri
