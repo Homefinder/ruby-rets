@@ -15,6 +15,12 @@ module RETS
 
       @digest = Digest::SHA1.new
       @total_size = 0
+      
+      if @response.header.key?('content-type')
+        @encoding = @response.header['content-type'][/.*charset=(.*)/, 1].to_s.upcase
+      else
+        @encoding = "UTF-8"
+      end
     end
 
     ##
@@ -95,9 +101,12 @@ module RETS
         if data.length >= @total_size
           @response.instance_variable_set(:@read, true)
         end
-
+        
         @digest.update(data)
-        data
+        
+        # Force encoding to UTF-8
+        data.force_encoding(@encoding).encode('utf-8')
+        
       end
 
     # Mark as read finished, return the last bits of data (if any))
