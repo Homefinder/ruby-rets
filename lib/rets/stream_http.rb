@@ -3,6 +3,8 @@
 # Essentially, for the hack of using instance_variable_get/instance_variable_set, we get a simple stream parser, without having to write our own HTTP class.
 module RETS
   class StreamHTTP
+    ENCODABLE = RUBY_VERSION >= "1.9.0"
+
     ##
     # Initializes a new HTTP stream which can be passed to Nokogiri for SAX parsing.
     # @param [Net::HTTPResponse] response
@@ -15,9 +17,10 @@ module RETS
 
       @digest = Digest::SHA1.new
       @total_size = 0
-      
-      @encoding = @response['content-type'][/.*charset=(.*)/, 1].to_s.upcase if @response.header.key?('content-type')
-      
+
+      if @response.header.key?("content-type")
+        @encoding = @response["content-type"][/.*charset=(.*)/, 1].to_s.upcase
+      end
     end
 
     ##
@@ -37,7 +40,7 @@ module RETS
     def encoding
       @encoding
     end
-    
+
     ##
     # Read
     #
@@ -95,12 +98,6 @@ module RETS
         end
       end
 
-      if !@encoding.nil? and !@encoding.empty?
-        data = data.force_encoding(@encoding).encode('utf-8')
-      else
-        data = data.encode('utf-8')
-      end
-      
       # We've finished reading, set this so Net::HTTP doesn't try and read it again
       if data == ""
         @response.instance_variable_set(:@read, true)
@@ -110,10 +107,14 @@ module RETS
         if data.length >= @total_size
           @response.instance_variable_set(:@read, true)
         end
-        
+
+        if ENCODABLE
+          data = data.force_encoding(@encoding) if @encoding
+          data = data.encode("UTF-8")
+        end
+
         @digest.update(data)
         data
-        
       end
 
     # Mark as read finished, return the last bits of data (if any))
