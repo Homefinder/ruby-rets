@@ -96,9 +96,9 @@ module RETS
       end
 
       if !@encoding.nil? and !@encoding.empty?
-        encoded_data = data.force_encoding(@encoding).encode('utf-8')
+        data = data.force_encoding(@encoding).encode('utf-8')
       else
-        encoded_data = data.encode('utf-8')
+        data = data.encode('utf-8')
       end
       
       # We've finished reading, set this so Net::HTTP doesn't try and read it again
