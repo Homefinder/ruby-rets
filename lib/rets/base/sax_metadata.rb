@@ -18,6 +18,9 @@ class RETS::Base::SAXMetadata < Nokogiri::XML::SAX::Document
         raise RETS::APIError.new("#{@rets_data[:code]}: #{@rets_data[:text]}", @rets_data[:code], @rets_data[:text])
       end
 
+    elsif tag == "SYSTEM"
+      @rets_data[:system_id] = attrs.first.last
+
     # Parsing data
     elsif tag == "COLUMNS" or tag == "DATA"
       @buffer = ""

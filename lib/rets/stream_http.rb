@@ -15,6 +15,9 @@ module RETS
 
       @digest = Digest::SHA1.new
       @total_size = 0
+      
+      @encoding = @response['content-type'][/.*charset=(.*)/, 1].to_s.upcase if @response.header.key?('content-type')
+      
     end
 
     ##
@@ -29,6 +32,12 @@ module RETS
       @digest.hexdigest
     end
 
+    ##
+    # Detected encoding
+    def encoding
+      @encoding
+    end
+    
     ##
     # Read
     #
@@ -86,6 +95,12 @@ module RETS
         end
       end
 
+      if !@encoding.nil? and !@encoding.empty?
+        data = data.force_encoding(@encoding).encode('utf-8')
+      else
+        data = data.encode('utf-8')
+      end
+      
       # We've finished reading, set this so Net::HTTP doesn't try and read it again
       if data == ""
         @response.instance_variable_set(:@read, true)
@@ -95,9 +110,10 @@ module RETS
         if data.length >= @total_size
           @response.instance_variable_set(:@read, true)
         end
-
+        
         @digest.update(data)
         data
+        
       end
 
     # Mark as read finished, return the last bits of data (if any))
