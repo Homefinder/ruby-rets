@@ -36,7 +36,7 @@ module RETS
         when "="
           encoded_string << "%3d"
         when "?"
-          encoded_string << "3f"
+          encoded_string << "%3f"
         when "&"
           encoded_string << "%26"
         when "%"
