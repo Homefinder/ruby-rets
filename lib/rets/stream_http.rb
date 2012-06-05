@@ -16,11 +16,6 @@ module RETS
       @digest = Digest::SHA1.new
       @total_size = 0
       
-      if @response.header.key?('content-type')
-        @encoding = @response.header['content-type'][/.*charset=(.*)/, 1].to_s.upcase
-      else
-        @encoding = "UTF-8"
-      end
     end
 
     ##
@@ -102,10 +97,10 @@ module RETS
           @response.instance_variable_set(:@read, true)
         end
         
-        @digest.update(data)
+        encoded_data = data.encode('utf-8')
         
-        # Force encoding to UTF-8
-        data.force_encoding(@encoding).encode('utf-8')
+        @digest.update(encoded_data)
+        encoded_data
         
       end
 
@@ -114,8 +109,10 @@ module RETS
       @response.instance_variable_set(:@read, true)
 
       if data and data != ""
-        @digest.update(data)
-        data
+        encoded_data = data.encode('utf-8')
+        
+        @digest.update(encoded_data)
+        encoded_data
       else
         nil
       end
