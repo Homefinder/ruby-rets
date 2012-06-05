@@ -1,5 +1,11 @@
 # Overview
 
+## 2.0.6 [In Progress]
+
+### Fixes
+  * Fixed encoding issues on some RETS servers (Paul Trippett) 
+  * Fixed character encoding that was causing issues on some RETS servers (Paul Trippett)
+
 ## 2.0.5
 
 ### Features
