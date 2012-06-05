@@ -19,7 +19,6 @@ class RETS::Base::SAXMetadata < Nokogiri::XML::SAX::Document
       end
 
     elsif tag == "SYSTEM"
-      puts attrs.inspect
       @rets_data[:system_id] = attrs.first.last
 
     # Parsing data
