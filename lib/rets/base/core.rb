@@ -221,7 +221,9 @@ module RETS
       # @see #request_size
       # @see #request_hash
       def search(args, &block)
-        raise ArgumentError, "No block found" unless block_given?
+        if !block_given? and args[:count_mode] != :only
+          raise ArgumentError, "No block found"
+        end
 
         unless @urls[:search]
           raise RETS::CapabilityNotFound.new("Cannot find URL for Search call")
