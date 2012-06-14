@@ -210,6 +210,7 @@ module RETS
       # @option args [Boolean, Optional] :standard_names Whether to use standard names for all fields
       # @option args [String, Optional] :restricted String to show in place of a field value for any restricted fields the user cannot see
       # @option args [Integer, Optional] :read_timeout How long to wait for data from the socket before giving up
+      # @option args [Boolean, Optional] :disable_stream Disables the streaming setup for data and instead loads it all and then parses
       #
       # @yield Called for every <DATA></DATA> group from the RETS server
       # @yieldparam [Hash] :data One record of data from the RETS server
@@ -242,9 +243,14 @@ module RETS
 
         @request_size, @request_hash, @rets_data = nil, nil, {}
         @http.request(req) do |response|
-          stream = RETS::StreamHTTP.new(response)
-          sax = RETS::Base::SAXSearch.new(@rets_data, block)
 
+          if args[:disable_stream]
+            stream = StringIO.new(response.body)
+          else
+            stream = RETS::StreamHTTP.new(response)
+          end
+
+          sax = RETS::Base::SAXSearch.new(@rets_data, block)
           Nokogiri::XML::SAX::Parser.new(sax).parse_io(stream)
 
           @request_size, @request_hash = stream.size, stream.hash
