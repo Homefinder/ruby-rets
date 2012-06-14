@@ -26,7 +26,7 @@ module RETS
         @auth_mode = @config.delete(:auth_mode)
       end
     end
-    
+
     def url_encode(str)
       encoded_string = ""
       str.each_char do |char|
@@ -41,13 +41,15 @@ module RETS
           encoded_string << "%26"
         when "%"
           encoded_string << "%25"
+        when ","
+          encoded_string << "%2C"
         else
           encoded_string << char
         end
       end
       encoded_string
     end
-    
+
     def get_digest(header)
       return unless header
 
