@@ -51,9 +51,8 @@ class RETS::Base::SAXSearch < Nokogiri::XML::SAX::Document
         next if @columns[index].nil? or @columns[index] == ""
         data[@columns[index]] = list[index]
       end
-      
-      @block.call(data)
 
+      @block.call(data)
     end
   end
 end
