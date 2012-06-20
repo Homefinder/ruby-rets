@@ -18,8 +18,8 @@ module RETS
       @digest = Digest::SHA1.new
       @total_size = 0
 
-      if @response.header.key?("content-type")
-        @encoding = @response["content-type"][/.*charset=(.*)/, 1].to_s.upcase
+      if @response.header.key?("content-type") and @response["content-type"] =~ /.*charset=(.*)/i
+        @encoding = $1.to_s.upcase
       end
     end
 
@@ -99,7 +99,7 @@ module RETS
       end
 
       # We've finished reading, set this so Net::HTTP doesn't try and read it again
-      if data == ""
+      if !data or data == ""
         @response.instance_variable_set(:@read, true)
 
         nil
@@ -108,7 +108,7 @@ module RETS
           @response.instance_variable_set(:@read, true)
         end
 
-        if ENCODABLE
+        if ENCODABLE and @encoding
           data = data.force_encoding(@encoding) if @encoding
           data = data.encode("UTF-8")
         end
