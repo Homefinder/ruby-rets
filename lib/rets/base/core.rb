@@ -243,7 +243,6 @@ module RETS
 
         @request_size, @request_hash, @rets_data = nil, nil, {}
         @http.request(req) do |response|
-
           if args[:disable_stream]
             stream = StringIO.new(response.body)
           else
@@ -253,7 +252,11 @@ module RETS
           sax = RETS::Base::SAXSearch.new(@rets_data, block)
           Nokogiri::XML::SAX::Parser.new(sax).parse_io(stream)
 
-          @request_size, @request_hash = stream.size, stream.hash
+          if args[:disable_stream]
+            @request_size, @request_hash = response.body.length, Digest::SHA1.hexdigest(response.body)
+          else
+            @request_size, @request_hash = stream.size, stream.hash
+          end
         end
 
         nil
