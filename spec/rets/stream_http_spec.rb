@@ -18,7 +18,7 @@ describe RETS::StreamHTTP do
   end
 
   it "uses readline if the content-length is unknown" do
-    str = "The quick\r\nbrown fox\r\njumps over\r\nthe lazy dog\r\n."
+    str = "The quick\r\nbrown fox\r\njumps over\r\nthe lazy dog\r\n.\r\n"
 
     response = mock("Response")
     response.stub(:content_length).and_return(nil)
