@@ -12,6 +12,7 @@ module RETS
     def initialize(response)
       @response = response
       @left_to_read = @response.content_length
+      @content_length = @response.content_length
       @chunked = @response.chunked?
       @socket = @response.instance_variable_get(:@socket)
 
@@ -96,6 +97,12 @@ module RETS
             @socket.read(2)
           end
         end
+
+      # If we don't have a content length, then we need to keep reading until we run out of data
+      elsif !@content_length
+        data = @socket.readline
+
+        @total_size += data.length if data
       end
 
       # We've finished reading, set this so Net::HTTP doesn't try and read it again
@@ -117,7 +124,7 @@ module RETS
         data
       end
 
-    # Mark as read finished, return the last bits of data (if any))
+    # Mark as read finished, return the last bits of data (if any)
     rescue EOFError
       @response.instance_variable_set(:@read, true)
 

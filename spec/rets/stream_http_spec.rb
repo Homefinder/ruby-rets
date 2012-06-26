@@ -17,6 +17,29 @@ describe RETS::StreamHTTP do
     stream.hash.should == Digest::SHA1.hexdigest(str)
   end
 
+  it "uses readline if the content-length is unknown" do
+    str = "The quick\r\nbrown fox\r\njumps over\r\nthe lazy dog\r\n."
+
+    response = mock("Response")
+    response.stub(:content_length).and_return(nil)
+    response.stub(:chunked?).and_return(false)
+    response.stub(:instance_variable_get).with(:@socket).and_return(StringIO.new(str))
+    response.stub(:header).and_return({})
+    response.should_receive(:instance_variable_set).at_least(1).with(:@read, true)
+
+    stream = RETS::StreamHTTP.new(response)
+
+    read = 0
+    while ( data = stream.read(4000) ) != nil do
+      data.should == str[read, data.length]
+      read += data.length
+    end
+
+    read.should == str.length
+    stream.size.should == str.length
+    stream.hash.should == Digest::SHA1.hexdigest(str)
+  end
+
   it "can handle HTTP chunked data from the socket" do
     orig_str = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
