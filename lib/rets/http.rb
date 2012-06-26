@@ -197,6 +197,7 @@ module RETS
       http = ::Net::HTTP.new(args[:url].host, args[:url].port)
       http.read_timeout = args[:read_timeout] if args[:read_timeout]
       http.set_debug_output(@config[:debug_output]) if @config[:debug_output]
+
       if args[:url].scheme == "https"
         http.use_ssl = true
         http.verify_mode = @config[:http][:verify_mode] || OpenSSL::SSL::VERIFY_NONE
