@@ -48,6 +48,10 @@ module RETS
     # @param [Integer] read_len
     #   How many bytes to read from the HTTP stream
     def read(read_len)
+      # If we closed the connection, return nil without calling anything again to avoid EOF
+      # or other errors
+      return nil if @closed
+
       if @left_to_read
         # We hit the end of what we need to read, if this is a chunked request, then we need to check for the next chunk
         if @left_to_read <= read_len
@@ -76,7 +80,16 @@ module RETS
 
           len = line.slice(/[0-9a-fA-F]+/) or raise Net::HTTPBadResponse.new("wrong chunk size line: #{line}")
           len = len.hex
-          break if len == 0
+
+          # Nothing left, read off the final \r\n
+          if len == 0
+            @socket.read(2)
+            @socket.close
+            @response.instance_variable_set(:@read, true)
+
+            @closed = true
+            break
+          end
 
           # Reading this chunk will set us over the buffer amount
           # Read what we can of it (if anything), and send back what we have and queue a read for the rest
@@ -111,7 +124,7 @@ module RETS
 
         nil
       else
-        if data.length >= @total_size
+        if data.length >= @total_size and !@chunked
           @response.instance_variable_set(:@read, true)
         end
 
@@ -127,6 +140,8 @@ module RETS
     # Mark as read finished, return the last bits of data (if any)
     rescue EOFError
       @response.instance_variable_set(:@read, true)
+      @socket.close
+      @closed = true
 
       if data and data != ""
         @digest.update(data)
