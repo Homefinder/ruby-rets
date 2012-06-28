@@ -77,7 +77,11 @@ module RETS
 
         @request_size, @request_hash, @rets_data = nil, nil, nil
         @http.request(:url => @urls[:getmetadata], :read_timeout => args[:read_timeout], :params => {:Format => :COMPACT, :Type => args[:type], :ID => args[:id]}) do |response|
-          stream = RETS::StreamHTTP.new(response)
+          if args[:disable_stream]
+            stream = StringIO.new(response.body)
+          else
+            stream = RETS::StreamHTTP.new(response)
+          end
           sax = RETS::Base::SAXMetadata.new(block)
 
           Nokogiri::XML::SAX::Parser.new(sax).parse_io(stream)
