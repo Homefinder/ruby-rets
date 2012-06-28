@@ -128,7 +128,7 @@ module RETS
           @response.instance_variable_set(:@read, true)
         end
 
-        if ENCODABLE and @encoding
+        if ENCODABLE and !@encoding.nil? and !encoding.blank? and @encoding != data.encoding
           data = data.force_encoding(@encoding) if @encoding
           data = data.encode("UTF-8")
         end
@@ -144,6 +144,10 @@ module RETS
       @closed = true
 
       if data and data != ""
+        if ENCODABLE and !@encoding.nil? and !encoding.blank? and @encoding != data.encoding
+          data = data.force_encoding(@encoding) if @encoding
+          data = data.encode("UTF-8")
+        end
         @digest.update(data)
         data
       else
