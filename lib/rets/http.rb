@@ -251,7 +251,7 @@ module RETS
           end
 
           # Digest can become stale requiring us to reload data
-          if @auth_mode == :digest and response.header["www-authenticate"] =~ /stale=true/i
+          if @auth_mode == :digest and response.header["www-authenticate"] =~ /stale=\\?"?true/i
             save_digest(get_digest(response.header.get_fields("www-authenticate")))
 
             args[:block] ||= block
