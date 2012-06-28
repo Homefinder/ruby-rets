@@ -194,7 +194,9 @@ module RETS
 
       headers = headers ? @headers.merge(headers) : @headers
 
-      http = ::Net::HTTP.new(args[:url].host, args[:url].port)
+      http = ::Net::HTTP.new(args[:url].host, args[:url].port) if !@config[:proxy]
+      http = ::Net::HTTP.new(args[:url].host, args[:url].port, @config[:proxy].host, @config[:proxy].port, @config[:proxy].user, @config[:proxy].password) if @config[:proxy]
+      
       http.read_timeout = args[:read_timeout] if args[:read_timeout]
       http.set_debug_output(@config[:debug_output]) if @config[:debug_output]
 
