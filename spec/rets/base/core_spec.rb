@@ -224,10 +224,15 @@ describe RETS::Base::Core do
 
   context "search" do
     it "successfully loads data" do
-      RETS::StreamHTTP.stub(:new).and_return(StringIO.new(load_file("search", "success")))
 
+      body = load_file("search", "success")
+
+      response = mock("Response")
+      response.stub(:body).and_return(body)
+      response.stub(:header).and_return({})
+      
       http = mock("HTTP")
-      http.should_receive(:request).with(hash_including(:url => @uri, :params => {:SearchType => "Property", :QueryType => "DMQL2", :Format => "COMPACT-DECODED", :Class => "RES", :Limit => 5, :Offset => 10, :RestrictedIndicator => "####", :Select => "A,B,C", :StandardNames => 1, :Count => 1, :Query => "(FOO=BAR)"})).and_yield(nil)
+      http.should_receive(:request).with(hash_including(:url => @uri, :params => {:SearchType => "Property", :QueryType => "DMQL2", :Format => "COMPACT-DECODED", :Class => "RES", :Limit => 5, :Offset => 10, :RestrictedIndicator => "####", :Select => "A,B,C", :StandardNames => 1, :Count => 1, :Query => "(FOO=BAR)"})).and_yield(response)
 
       data = []
 
@@ -243,36 +248,17 @@ describe RETS::Base::Core do
       data[1].should == {"BATHS" => "3.000000", "BATHS_FULL" => "2", "BATHS_HALF" => "1", "BEDROOMS" => "", "STREET_NAME" => "FOO STREET"}
     end
 
-    it "successfully loads data" do
 
-      body = load_file("search", "success")
-    
+    it "raises an error" do
+
+      body = load_file("search", "error")
+
       response = mock("Response")
       response.stub(:body).and_return(body)
-      response.stub(:header).and_return({"Content-Type" => "text/plain; charset=utf-8"})
+      response.stub(:header).and_return({})
       
       http = mock("HTTP")
       http.should_receive(:request).with(anything).and_yield(response)
-
-      data = []
-
-      client = RETS::Base::Core.new(http, {:search => @uri})
-      client.search(:search_type => "Property", :query => "(FOO=BAR)", :class => "RES", :limit => 5, :offset => 10, :restricted => "####", :select => ["A", "B", "C"], :standard_names => true, :count_mode => :both, :disable_stream => true) do |row|
-        data.push(row)
-      end
-
-      client.rets_data.should == {:code => "0", :text => "Operation Successful", :count => 2, :delimiter => "\t"}
-
-      data.should have(2).items
-      data[0].should == {"BATHS" => "1.000000", "BATHS_FULL" => "1", "BATHS_HALF" => "0", "BEDROOMS" => "3", "STREET_NAME" => "BAR STEET"}
-      data[1].should == {"BATHS" => "3.000000", "BATHS_FULL" => "2", "BATHS_HALF" => "1", "BEDROOMS" => "", "STREET_NAME" => "FOO STREET"}
-    end
-
-    it "raises an error" do
-      RETS::StreamHTTP.stub(:new).and_return(StringIO.new(load_file("search", "error")))
-
-      http = mock("HTTP")
-      http.should_receive(:request).with(anything).and_yield(nil)
 
       client = RETS::Base::Core.new(http, {:search => @uri})
       lambda { client.search({}) {} }.should raise_error(RETS::APIError) do |e|
@@ -281,4 +267,5 @@ describe RETS::Base::Core do
       end
     end
   end
+  
 end

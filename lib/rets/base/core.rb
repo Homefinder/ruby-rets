@@ -250,23 +250,40 @@ module RETS
         @http.request(req) do |response|
           
           if response.header.key?("content-type") and response.header["content-type"] =~ /.*charset=(.*)/i
-            encoding = $1.to_s.upcase
+            header_encoding = $1.to_s.upcase
           end
           
-          if args[:disable_stream]
-            stream = StringIO.new(response.body)
-          else
-            stream = RETS::StreamHTTP.new(response)
+          stream = StringIO.new(response.body)
+          reader = Nokogiri::XML::Reader(stream, encoding = header_encoding)
+          while reader.read
+            if reader.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
+              # Figure out if the request is a success
+              case reader.name
+              when "RETS"
+                @rets_data[:code], @rets_data[:text] = reader.attribute('ReplyCode'), reader.attribute('ReplyText')
+                if @rets_data[:code] != "0" and @rets_data[:code] != "20201"
+                  raise RETS::APIError.new("#{@rets_data[:code]}: #{@rets_data[:text]}", @rets_data[:code], @rets_data[:text])
+                end
+              when "DELIMITER"
+                @rets_data[:delimiter] = reader.attribute('value').to_i.chr
+              when "COUNT"
+                @rets_data[:count] = reader.attribute('Records').to_i
+              when "COLUMNS"
+                columns = reader.inner_xml.split(@rets_data[:delimiter])
+              when "DATA"
+                if !reader.inner_xml.nil?
+                  data = {}
+                  list = reader.inner_xml.split(@rets_data[:delimiter])
+                  list.each_index do |index|
+                    next if columns[index].nil? or columns[index] == ""
+                    data[columns[index]] = list[index]
+                  end
+                  block.call(data)
+                end
+              end
+            end
           end
-
-          sax = RETS::Base::SAXSearch.new(@rets_data, block)
-          Nokogiri::XML::SAX::Parser.new(sax, encoding).parse_io(stream)
-
-          if args[:disable_stream]
-            @request_size, @request_hash = response.body.length, Digest::SHA1.hexdigest(response.body)
-          else
-            @request_size, @request_hash = stream.size, stream.hash
-          end
+          @request_size, @request_hash = response.body.length, Digest::SHA1.hexdigest(response.body)
         end
 
         nil
