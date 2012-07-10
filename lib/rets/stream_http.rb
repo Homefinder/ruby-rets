@@ -3,7 +3,6 @@
 # Essentially, for the hack of using instance_variable_get/instance_variable_set, we get a simple stream parser, without having to write our own HTTP class.
 module RETS
   class StreamHTTP
-    ENCODABLE = RUBY_VERSION >= "1.9.0"
 
     ##
     # Initializes a new HTTP stream which can be passed to Nokogiri for SAX parsing.
@@ -19,9 +18,6 @@ module RETS
       @digest = Digest::SHA1.new
       @total_size = 0
 
-      if @response.header.key?("content-type") and @response["content-type"] =~ /.*charset=(.*)/i
-        @encoding = $1.to_s.upcase
-      end
     end
 
     ##
@@ -128,11 +124,6 @@ module RETS
           @response.instance_variable_set(:@read, true)
         end
 
-        if ENCODABLE
-          data = data.force_encoding(@encoding) if @encoding and !@encoding.nil? and !encoding.blank? and @encoding != data.encoding and @encoding != "UTF-8"
-          data = data.encode("UTF-8")
-        end
-
         @digest.update(data)
         data
       end
@@ -144,10 +135,6 @@ module RETS
       @closed = true
 
       if data and data != ""
-        if ENCODABLE
-          data = data.force_encoding(@encoding) if @encoding and !@encoding.nil? and !encoding.blank? and @encoding != data.encoding and @encoding != "UTF-8"
-          data = data.encode("UTF-8")
-        end
         @digest.update(data)
         data
       else

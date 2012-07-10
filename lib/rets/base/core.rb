@@ -2,8 +2,9 @@
 module RETS
   module Base
     class Core
+      
       GET_OBJECT_DATA = ["object-id", "description", "content-id", "content-description", "location", "content-type", "preferred"]
-
+      
       # Can be called after any {RETS::Base::Core} call that hits the RETS Server.
       # @return [String] How big the request was
       attr_reader :request_size
@@ -247,6 +248,11 @@ module RETS
 
         @request_size, @request_hash, @rets_data = nil, nil, {}
         @http.request(req) do |response|
+          
+          if response.header.key?("content-type") and response.header["content-type"] =~ /.*charset=(.*)/i
+            encoding = $1.to_s.upcase
+          end
+          
           if args[:disable_stream]
             stream = StringIO.new(response.body)
           else
@@ -254,7 +260,7 @@ module RETS
           end
 
           sax = RETS::Base::SAXSearch.new(@rets_data, block)
-          Nokogiri::XML::SAX::Parser.new(sax).parse_io(stream)
+          Nokogiri::XML::SAX::Parser.new(sax, encoding).parse_io(stream)
 
           if args[:disable_stream]
             @request_size, @request_hash = response.body.length, Digest::SHA1.hexdigest(response.body)

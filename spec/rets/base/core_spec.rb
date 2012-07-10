@@ -243,6 +243,30 @@ describe RETS::Base::Core do
       data[1].should == {"BATHS" => "3.000000", "BATHS_FULL" => "2", "BATHS_HALF" => "1", "BEDROOMS" => "", "STREET_NAME" => "FOO STREET"}
     end
 
+    it "successfully loads data" do
+
+      body = load_file("search", "success")
+    
+      response = mock("Response")
+      response.stub(:body).and_return(body)
+      response.stub(:header).and_return({"Content-Type" => "text/plain; charset=utf-8"})
+      
+      http = mock("HTTP")
+      http.should_receive(:request).with(anything).and_yield(response)
+
+      data = []
+
+      client = RETS::Base::Core.new(http, {:search => @uri})
+      client.search(:search_type => "Property", :query => "(FOO=BAR)", :class => "RES", :limit => 5, :offset => 10, :restricted => "####", :select => ["A", "B", "C"], :standard_names => true, :count_mode => :both, :disable_stream => true) do |row|
+        data.push(row)
+      end
+
+      client.rets_data.should == {:code => "0", :text => "Operation Successful", :count => 2, :delimiter => "\t"}
+
+      data.should have(2).items
+      data[0].should == {"BATHS" => "1.000000", "BATHS_FULL" => "1", "BATHS_HALF" => "0", "BEDROOMS" => "3", "STREET_NAME" => "BAR STEET"}
+      data[1].should == {"BATHS" => "3.000000", "BATHS_FULL" => "2", "BATHS_HALF" => "1", "BEDROOMS" => "", "STREET_NAME" => "FOO STREET"}
+    end
 
     it "raises an error" do
       RETS::StreamHTTP.stub(:new).and_return(StringIO.new(load_file("search", "error")))
