@@ -254,7 +254,7 @@ module RETS
           end
           
           stream = StringIO.new(response.body)
-          reader = Nokogiri::XML::Reader(stream, encoding = header_encoding)
+          reader = Nokogiri::XML::Reader(stream, nil, header_encoding)
           while reader.read
             if reader.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
               # Figure out if the request is a success
